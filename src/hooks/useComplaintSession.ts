@@ -1,15 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-
-interface ComplaintSession {
-  id: string;
-  user_id: string;
-  agent_id: string | null;
-  status: string;
-  created_at: string;
-  updated_at: string;
-}
+import { ComplaintSession } from '@/types/complaints';
 
 export function useComplaintSession(userId: string | null) {
   const [sessions, setSessions] = useState<ComplaintSession[]>([]);
@@ -20,26 +12,34 @@ export function useComplaintSession(userId: string | null) {
   useEffect(() => {
     if (userId) {
       loadSessions();
-      subscribeToSessionUpdates();
+      const unsubscribe = subscribeToSessionUpdates();
+      return () => {
+        unsubscribe();
+      };
     }
   }, [userId]);
 
   const loadSessions = async () => {
     try {
+      setLoading(true);
       const { data, error } = await supabase
         .from('complaint_sessions')
-        .select('*')
+        .select(`
+          *,
+          user:users (
+            name,
+            mobile
+          ),
+          agent:agents (
+            name,
+            status
+          )
+        `)
         .eq('user_id', userId)
-        .order('updated_at', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setSessions(data);
-      
-      // Set the most recent active session as current
-      const activeSession = data.find(session => session.status === 'open');
-      if (activeSession) {
-        setActiveSession(activeSession);
-      }
+      setSessions(data || []);
     } catch (error) {
       console.error('Error loading sessions:', error);
       toast({
@@ -53,39 +53,21 @@ export function useComplaintSession(userId: string | null) {
   };
 
   const createNewSession = async () => {
-    if (!userId) {
-      console.error('Cannot create session without user ID');
-      return null;
-    }
-
     try {
       const { data, error } = await supabase
         .from('complaint_sessions')
-        .insert({
+        .insert([{
           user_id: userId,
-          status: 'open',
-          updated_at: new Date().toISOString()
-        })
+          status: 'open'
+        }])
         .select()
         .single();
 
-      if (error) {
-        console.error('Error creating session:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to create new complaint session',
-          variant: 'destructive'
-        });
-        return null;
-      }
+      if (error) throw error;
 
-      if (!data) {
-        throw new Error('Failed to create session');
-      }
-
-      setActiveSession(data);
       setSessions(prev => [data, ...prev]);
-      return data;
+      setActiveSession(data);
+      return data.id;
     } catch (error) {
       console.error('Error creating session:', error);
       toast({

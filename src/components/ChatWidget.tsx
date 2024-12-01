@@ -11,6 +11,7 @@ import ChatNavigation from './chat/ChatNavigation';
 import { useChat } from '@/hooks/useChat';
 import ComplaintStatus from './chat/ComplaintStatus';
 import { WidgetProvider, useWidget } from '@/contexts/WidgetContext';
+import { useAnnouncementSubscription } from '@/hooks/useAnnouncementSubscription';
 
 interface Agent {
   id: string;
@@ -53,7 +54,7 @@ function ChatWidgetContent({ standalone = false }: ChatWidgetProps) {
     setMessages,
     createNewSession,
     loadUserSessions
-  } = useChat();
+  } = useChat(userId);
 
   useEffect(() => {
     fetchAgents();
@@ -71,6 +72,34 @@ function ChatWidgetContent({ standalone = false }: ChatWidgetProps) {
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  useEffect(() => {
+    // Check for existing session
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setUserId(session.user.id);
+        localStorage.setItem('chatUserId', session.user.id);
+      }
+    };
+
+    checkSession();
+
+    // Subscribe to auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        setUserId(session.user.id);
+        localStorage.setItem('chatUserId', session.user.id);
+      } else {
+        setUserId(null);
+        localStorage.removeItem('chatUserId');
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
     };
   }, []);
 
@@ -186,6 +215,15 @@ function ChatWidgetContent({ standalone = false }: ChatWidgetProps) {
   };
 
   const handleMessageSend = (input: string) => {
+    if (!userId) {
+      toast({
+        title: 'Error',
+        description: 'Please register or sign in to send messages',
+        variant: 'destructive'
+      });
+      setShowRegistration(true);
+      return;
+    }
     handleSend(input, userId);
   };
 
@@ -199,6 +237,33 @@ function ChatWidgetContent({ standalone = false }: ChatWidgetProps) {
     setIsComplaintStatus(false);
     setActiveTab('complaint');
   };
+
+  const handleAnnouncementUpdate = (announcement: any) => {
+    if (announcement.active) {
+      setAnnouncements(prev => {
+        const exists = prev.some(a => a.id === announcement.id);
+        if (exists) {
+          return prev.map(a => 
+            a.id === announcement.id ? announcement : a
+          );
+        }
+        return [announcement, ...prev];
+      });
+    } else {
+      setAnnouncements(prev => 
+        prev.filter(a => a.id !== announcement.id)
+      );
+    }
+  };
+
+  const handleAnnouncementDelete = (id: string) => {
+    setAnnouncements(prev => prev.filter(a => a.id !== id));
+  };
+
+  useAnnouncementSubscription(
+    handleAnnouncementUpdate,
+    handleAnnouncementDelete
+  );
 
   return (
     <div

@@ -1,8 +1,12 @@
-export interface ChatUser {
+export interface User {
   id: string;
-  mobile: string;
   name: string;
+  mobile: string;
   created_at: string;
+}
+
+export interface ChatUser extends User {
+  // Additional chat-specific user properties if needed
 }
 
 export interface ChatSession {
@@ -11,4 +15,5 @@ export interface ChatSession {
   title: string;
   created_at: string;
   last_message?: string;
+  user?: User;
 } 

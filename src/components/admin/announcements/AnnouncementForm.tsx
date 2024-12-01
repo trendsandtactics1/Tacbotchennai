@@ -114,7 +114,7 @@ export default function AnnouncementForm({ initialData, editingId, onSubmit }: A
       } else {
         const { error } = await supabase
           .from("announcements")
-          .insert([formData]);
+          .insert([{ ...formData, active: true }]);
 
         if (error) throw error;
         toast({
@@ -131,6 +131,7 @@ export default function AnnouncementForm({ initialData, editingId, onSubmit }: A
       });
       onSubmit();
     } catch (error) {
+      console.error('Error saving announcement:', error);
       toast({
         title: "Error",
         description: "Failed to save announcement",

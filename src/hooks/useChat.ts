@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ChatMessage } from "@/services/chatService";
 import { sendMessage, updateConversationStatus } from "@/services/chatService";
+import { useChatSessionSubscription } from './useChatSessionSubscription';
+import { ChatSession } from '@/types/user';
 
 export type ConversationStatus = 'pending' | 'resolved' | 'closed';
 
@@ -23,11 +25,22 @@ Feel free to ask me anything! How can I assist you today?`,
   status: 'pending'
 };
 
-export const useChat = () => {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+export const useChat = (userId: string | null) => {
+  const [messages, setMessages] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [sessionId, setSessionId] = useState<string | undefined>();
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [sessions, setSessions] = useState<ChatSession[]>([]);
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (userId) {
+      loadUserSessions(userId);
+      const unsubscribe = subscribeToSessionUpdates(userId);
+      return () => {
+        unsubscribe();
+      };
+    }
+  }, [userId]);
 
   // Load user's chat sessions
   const loadUserSessions = async (userId: string) => {
@@ -39,15 +52,14 @@ export const useChat = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data;
+      setSessions(data || []);
     } catch (error) {
-      console.error('Error loading user sessions:', error);
+      console.error('Error loading sessions:', error);
       toast({
         title: 'Error',
         description: 'Failed to load chat sessions',
         variant: 'destructive'
       });
-      return [];
     }
   };
 
@@ -94,7 +106,12 @@ export const useChat = () => {
   };
 
   // Create a new chat session
-  const createNewSession = async (userId: string, title: string = 'New Chat') => {
+  const createNewSession = async (userId: string | null, title: string = 'New Chat') => {
+    if (!userId) {
+      console.error('Cannot create session without user ID');
+      return null;
+    }
+
     try {
       const newSessionId = uuidv4();
       const { error } = await supabase
@@ -147,10 +164,54 @@ export const useChat = () => {
     }
   };
 
+  const handleSessionUpdate = (session: ChatSession) => {
+    setSessions(prev => {
+      const exists = prev.some(s => s.id === session.id);
+      if (exists) {
+        return prev.map(s => s.id === session.id ? session : s);
+      }
+      return [session, ...prev];
+    });
+  };
+
+  const handleSessionDelete = (id: string) => {
+    setSessions(prev => prev.filter(s => s.id !== id));
+  };
+
+  // Subscribe to session updates
+  useChatSessionSubscription(
+    userId,
+    handleSessionUpdate,
+    handleSessionDelete
+  );
+
+  const subscribeToSessionUpdates = (currentUserId: string) => {
+    const channel = supabase
+      .channel(`chat-sessions-${currentUserId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'chat_sessions',
+          filter: `user_id=eq.${currentUserId}`
+        },
+        (payload) => {
+          // ... subscription logic
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  };
+
   return {
     messages,
     isLoading,
     sessionId,
+    sessions,
     loadUserSessions,
     loadSessionMessages,
     createNewSession,

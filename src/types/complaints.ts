@@ -9,23 +9,64 @@ export interface Message {
   agent_id?: string;
 }
 
+export type ComplaintStatus = 'pending' | 'in_progress' | 'resolved' | 'closed';
+export type ComplaintPriority = 'low' | 'medium' | 'high' | 'urgent';
+export type ReplyStatus = 'none' | 'pending' | 'answered';
+
 export interface Complaint {
   id: string;
-  message?: string;
-  user_message: string;
-  admin_reply: string[] | null;
-  status: string;
-  created_at: string;
-  agent_id: string | null;
+  user_id: string;
+  agent_id?: string;
   session_id: string;
-  parent_id: string | null;
-  is_reply: boolean;
+  title: string;
+  description: string;
+  status: ComplaintStatus;
+  created_at: string;
   updated_at: string;
-  parent_complaint_id: string | null;
-  agent: Agent | null;
-  replies?: number;
-  conversation?: Message[];
+  user_message?: string;
+  category?: string;
+  priority: ComplaintPriority;
+  admin_reply?: string;
+  admin_reply_at?: string;
+  admin_user_id?: string;
+  is_reply: boolean;
+  parent_id?: string;
+  reply_count: number;
   reply_timestamps?: string[];
+  last_reply_at?: string;
+  reply_status: ReplyStatus;
+  has_unread_reply: boolean;
+}
+
+export interface ComplaintReply {
+  id: string;
+  complaint_id: string;
+  user_id: string;
+  message: string;
+  is_admin: boolean;
+  created_at: string;
+  user?: {
+    name: string;
+    mobile: string;
+  };
+}
+
+export interface ComplaintWithRelations extends Complaint {
+  user?: {
+    id: string;
+    name: string;
+    mobile: string;
+  };
+  agent?: {
+    id: string;
+    name: string;
+    status: string;
+  };
+  admin_user?: {
+    id: string;
+    name: string;
+  };
+  replies?: ComplaintReply[];
 }
 
 export interface Conversation {
@@ -45,12 +86,17 @@ export interface Conversation {
 export interface ComplaintSession {
   id: string;
   user_id: string;
+  agent_id?: string;
   status: 'open' | 'pending' | 'resolved' | 'closed';
   created_at: string;
   updated_at: string;
   user?: {
     name: string;
     mobile: string;
+  };
+  agent?: {
+    name: string;
+    status: string;
   };
 }
 
