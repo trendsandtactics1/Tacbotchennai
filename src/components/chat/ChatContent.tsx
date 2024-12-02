@@ -60,6 +60,7 @@ interface ChatContentProps {
   showRegistration: boolean;
   onRegistrationSuccess: (userId: string) => void;
   onRegistrationBack: () => void;
+  sessions?: ChatSession[];
 }
 
 const ChatContent = ({
@@ -83,7 +84,8 @@ const ChatContent = ({
   loadUserSessions,
   showRegistration,
   onRegistrationSuccess,
-  onRegistrationBack
+  onRegistrationBack,
+  sessions = []
 }: ChatContentProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -160,7 +162,7 @@ const ChatContent = ({
             <div className='flex flex-col h-full w-full overflow-hidden'>
               {selectedComplaintId ? (
                 <ComplaintStatus
-                  complaintId={selectedComplaintId}
+                  sessionId={selectedComplaintId}
                   onBack={handleBackFromComplaintStatus}
                 />
               ) : selectedAgentId ? (
@@ -196,10 +198,10 @@ const ChatContent = ({
         if (!isMessagesView) {
           return (
             <ChatSessionsList
-              userId={userId}
+              sessions={sessions}
               onSelectSession={onSelectSession}
-              onNewChat={onStartChat}
-              loadUserSessions={loadUserSessions}
+              onStartNewChat={onStartChat}
+              loading={isLoading}
             />
           );
         }

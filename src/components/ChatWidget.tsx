@@ -48,6 +48,7 @@ function ChatWidgetContent({ standalone = false }: ChatWidgetProps) {
     messages,
     isLoading,
     sessionId,
+    sessions,
     loadSessionMessages,
     handleSend,
     handleStatusChange,
@@ -335,6 +336,8 @@ function ChatWidgetContent({ standalone = false }: ChatWidgetProps) {
                         showRegistration={showRegistration}
                         onRegistrationSuccess={handleRegistrationSuccess}
                         onRegistrationBack={handleRegistrationBack}
+                        sessions={sessions || []}
+                        loading={isLoading}
                       />
                       {isMessagesView && activeTab === 'messages' && (
                         <ChatInput
@@ -377,6 +380,8 @@ function ChatWidgetContent({ standalone = false }: ChatWidgetProps) {
                     showRegistration={showRegistration}
                     onRegistrationSuccess={handleRegistrationSuccess}
                     onRegistrationBack={handleRegistrationBack}
+                    sessions={sessions || []}
+                    loading={isLoading}
                   />
                 </div>
                 <ChatNavigation
