@@ -101,7 +101,7 @@ const HomeTab = ({
             <h3 className='text-lg font-semibold text-gray-900 px-4'>
               Recent Updates
             </h3>
-            <div className='grid grid-cols-1 gap-4 px-4'>
+            <div className='grid grid-cols-1 gap-4'>
               {announcements.slice(0, 12).map((announcement) => (
                 <Card
                   key={announcement.id}
