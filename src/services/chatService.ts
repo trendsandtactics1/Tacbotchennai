@@ -1,61 +1,175 @@
 import { supabase } from '@/integrations/supabase/client';
 
+interface Document {
+  id: string;
+  content: string;
+  metadata: {
+    source_url?: string;
+    title?: string;
+    description?: string;
+  };
+  similarity?: number;
+}
+
 export interface ChatMessage {
   id: string;
   content: string;
   isUser: boolean;
   timestamp: Date;
-  status?: 'pending' | 'resolved' | 'closed';
+  status?: 'pending' | 'resolved' | 'closed' | 'error';
 }
 
-// Predefined AI responses
-const AI_RESPONSES = {
-  greeting: [
-    "Hello! How can I help you today?",
-    "Hi there! What can I assist you with?",
-    "Welcome! How may I help you?"
-  ],
-  default: [
-    "I understand. Could you please provide more details?",
-    "I'm here to help. What specific information do you need?",
-    "Let me assist you with that. Could you elaborate further?"
-  ],
-  unknown: [
-    "I'm not sure I understand. Could you rephrase that?",
-    "Could you please clarify what you mean?",
-    "I'm having trouble understanding. Could you explain differently?"
-  ]
-};
+async function searchDocuments(query: string): Promise<Document[]> {
+  try {
+    // Extract meaningful keywords
+    const keywords = query
+      .toLowerCase()
+      .split(' ')
+      .filter(
+        (word) =>
+          word.length > 2 &&
+          !['the', 'and', 'but', 'for', 'with'].includes(word)
+      );
 
-function getAIResponse(message: string): string {
-  // Convert message to lowercase for easier matching
-  const lowerMessage = message.toLowerCase();
+    // Search documents with full-text search
+    const { data, error } = await supabase
+      .from('documents')
+      .select('*')
+      .textSearch('content', keywords.join(' | '), {
+        type: 'websearch',
+        config: 'english'
+      })
+      .limit(10);
 
-  // Check for greetings
-  if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('hey')) {
-    return AI_RESPONSES.greeting[Math.floor(Math.random() * AI_RESPONSES.greeting.length)];
+    if (error) throw error;
+
+    // Calculate similarity scores
+    const scoredDocs = (data || [])
+      .map((doc) => ({
+        ...doc,
+        similarity: calculateSimilarity(query, doc.content)
+      }))
+      .sort((a, b) => b.similarity - a.similarity);
+
+    return scoredDocs;
+  } catch (error) {
+    console.error('Error searching documents:', error);
+    return [];
+  }
+}
+
+function calculateSimilarity(query: string, content: string): number {
+  const queryWords = new Set(query.toLowerCase().split(/\W+/));
+  const contentWords = content.toLowerCase().split(/\W+/);
+
+  let matches = 0;
+  let relevanceScore = 0;
+
+  queryWords.forEach((word) => {
+    if (word.length < 1) return; // Skip short words
+
+    const regex = new RegExp(word, 'gi');
+    const wordMatches = (content.match(regex) || []).length;
+
+    if (wordMatches > 0) {
+      matches++;
+      relevanceScore += wordMatches;
+    }
+  });
+
+  // Combined score based on word matches and frequency
+  return (matches / queryWords.size) * (1 + Math.min(relevanceScore / 100, 1));
+}
+
+function generateResponse(query: string, documents: Document[]): string {
+  if (documents.length === 0) {
+    return getDefaultResponse(query);
   }
 
-  // Default response if no specific match
-  return AI_RESPONSES.default[Math.floor(Math.random() * AI_RESPONSES.default.length)];
+  // Get top relevant documents
+  const topDocs = documents.slice(0, 3);
+  const relevantSentences: string[] = [];
+
+  topDocs.forEach((doc) => {
+    const sentences = doc.content
+      .split(/[.!?]+/)
+      .map((s) => s.trim())
+      .filter((s) => s.length > 20); // Filter out very short sentences
+
+    // Find relevant sentences
+    const docSentences = sentences.filter((sentence) => {
+      const sentenceLower = sentence.toLowerCase();
+      return query
+        .toLowerCase()
+        .split(' ')
+        .some((word) => word.length > 3 && sentenceLower.includes(word));
+    });
+
+    relevantSentences.push(...docSentences.slice(0, 2));
+  });
+
+  if (relevantSentences.length > 0) {
+    // Remove duplicates and combine sentences
+    const uniqueSentences = Array.from(new Set(relevantSentences)).slice(0, 3);
+
+    const response = uniqueSentences.join('. ');
+
+    // Add source attribution
+    const sources = topDocs
+      .map((doc) => doc.metadata.source_url)
+      .filter(Boolean)
+      .slice(0, 2);
+
+    const sourceText =
+      sources.length > 0 ? ` (Sources: ${sources.join(', ')})` : '';
+
+    return `Based on our information${sourceText}: ${response}.`;
+  }
+
+  return `Based on our information: ${documents[0].content.split('.')[0]}.`;
+}
+
+function getDefaultResponse(query: string): string {
+  const defaultResponses = {
+    greeting: [
+      'Hello! How can I help you today?',
+      'Hi there! What can I assist you with?',
+      'Welcome! How may I help you?'
+    ],
+    unknown: [
+      "I don't have specific information about that. Could you try asking something else?",
+      "I'm not sure about that. Could you rephrase your question?",
+      "I don't have enough information to answer that question accurately."
+    ]
+  };
+
+  if (query.toLowerCase().match(/hello|hi|hey/)) {
+    return defaultResponses.greeting[
+      Math.floor(Math.random() * defaultResponses.greeting.length)
+    ];
+  }
+
+  return defaultResponses.unknown[
+    Math.floor(Math.random() * defaultResponses.unknown.length)
+  ];
 }
 
 export async function sendMessage(
   sessionId: string,
   message: string,
-  setMessages: (messages: any) => void,
+  setMessages: (updater: (prev: ChatMessage[]) => ChatMessage[]) => void,
   setIsLoading: (loading: boolean) => void
 ) {
   try {
     setIsLoading(true);
 
-    // Save user message to conversations
+    // Save user message
     const { data: messageData, error: messageError } = await supabase
       .from('conversations')
       .insert([
         {
           session_id: sessionId,
-          message: message,
+          message,
           sender: 'user',
           timestamp: new Date().toISOString()
         }
@@ -65,25 +179,24 @@ export async function sendMessage(
 
     if (messageError) throw messageError;
 
-    // Update messages state with user message
-    setMessages((prev: ChatMessage[]) => [
-      ...prev,
-      {
-        id: messageData.id,
-        content: message,
-        isUser: true,
-        timestamp: new Date(),
-        status: 'pending'
-      }
-    ]);
+    const userMessage: ChatMessage = {
+      id: messageData.id,
+      content: message,
+      isUser: true,
+      timestamp: new Date(),
+      status: 'pending'
+    };
 
-    // Generate AI response
-    const aiResponse = getAIResponse(message);
+    setMessages((prev) => [...prev, userMessage]);
 
-    // Add artificial delay to simulate processing
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Search documents and generate response
+    const relevantDocs = await searchDocuments(message);
+    const aiResponse = generateResponse(message, relevantDocs);
 
-    // Save AI response to conversations
+    // Add artificial delay for natural feel
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    // Save AI response
     const { data: aiMessageData, error: aiMessageError } = await supabase
       .from('conversations')
       .insert([
@@ -99,30 +212,27 @@ export async function sendMessage(
 
     if (aiMessageError) throw aiMessageError;
 
-    // Update messages state with AI response
-    setMessages((prev: ChatMessage[]) => [
-      ...prev,
-      {
-        id: aiMessageData.id,
-        content: aiResponse,
-        isUser: false,
-        timestamp: new Date(),
-        status: 'pending'
-      }
-    ]);
+    const assistantMessage: ChatMessage = {
+      id: aiMessageData.id,
+      content: aiResponse,
+      isUser: false,
+      timestamp: new Date(),
+      status: 'pending'
+    };
 
+    setMessages((prev) => [...prev, assistantMessage]);
   } catch (error) {
     console.error('Error in sendMessage:', error);
-    setMessages((prev: ChatMessage[]) => [
-      ...prev,
-      {
-        id: 'error',
-        content: 'Sorry, I encountered an error. Please try again.',
-        isUser: false,
-        timestamp: new Date(),
-        status: 'error'
-      }
-    ]);
+
+    const errorMessage: ChatMessage = {
+      id: `error-${Date.now()}`,
+      content: 'Sorry, I encountered an error. Please try again.',
+      isUser: false,
+      timestamp: new Date(),
+      status: 'error'
+    };
+
+    setMessages((prev) => [...prev, errorMessage]);
   } finally {
     setIsLoading(false);
   }

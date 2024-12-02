@@ -1,4 +1,5 @@
-const OPENAI_API_KEY = 'REPLACE_WITH_YOUR_API_KEY';
+const OPENAI_API_KEY =
+  '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';
 import { supabase } from '@/integrations/supabase/client';
 
 interface MatchedDocument {
@@ -15,20 +16,26 @@ interface MatchedDocument {
 export async function getAIResponse(message: string): Promise<string> {
   try {
     // First, get relevant documents based on the query
-    const { data: matchResponse, error: matchError } = await supabase.functions.invoke('match-documents', {
-      body: { query: message }
-    });
+    const { data: matchResponse, error: matchError } =
+      await supabase.functions.invoke('match-documents', {
+        body: { query: message }
+      });
 
     if (matchError) throw matchError;
 
     // Format the context with metadata
-    const contextText = matchResponse?.documents
-      ?.map((doc: MatchedDocument, index: number) => {
-        const source = doc.metadata?.source_url ? `Source: ${doc.metadata.source_url}` : '';
-        const relevance = `Relevance: ${(doc.similarity * 100).toFixed(2)}%`;
-        return `[Document ${index + 1}]: ${doc.content}\n${source}\n${relevance}`;
-      })
-      .join('\n\n') || 'No specific context available.';
+    const contextText =
+      matchResponse?.documents
+        ?.map((doc: MatchedDocument, index: number) => {
+          const source = doc.metadata?.source_url
+            ? `Source: ${doc.metadata.source_url}`
+            : '';
+          const relevance = `Relevance: ${(doc.similarity * 100).toFixed(2)}%`;
+          return `[Document ${index + 1}]: ${
+            doc.content
+          }\n${source}\n${relevance}`;
+        })
+        .join('\n\n') || 'No specific context available.';
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',

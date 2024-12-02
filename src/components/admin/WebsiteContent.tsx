@@ -1,19 +1,19 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import WebsiteProcessor from './WebsiteProcessor';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Json } from '@/integrations/supabase/types';
+import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Trash2 } from 'lucide-react';
+import { processWebsite } from '@/services/websiteContent';
 import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow
+  TableRow,
 } from '@/components/ui/table';
 import {
   AlertDialog,
@@ -23,27 +23,27 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle
+  AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-
-interface DocumentMetadata {
-  source_url?: string;
-  processed_at?: string;
-}
 
 interface Document {
   id: string;
   content: string;
-  metadata: Json | DocumentMetadata;
+  metadata: {
+    source_url?: string;
+    processed_at?: string;
+  };
   created_at: string;
-  embedding?: string | null;
 }
 
 export default function WebsiteContent() {
+  const [url, setUrl] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [selectedDoc, setSelectedDoc] = useState<Document | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -72,15 +72,33 @@ export default function WebsiteContent() {
     }
   };
 
-  const handleProcessSuccess = () => {
-    fetchDocuments();
-  };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!url) return;
 
-  const getMetadataValue = (doc: Document, key: keyof DocumentMetadata) => {
-    if (typeof doc.metadata === 'object' && doc.metadata !== null) {
-      return (doc.metadata as DocumentMetadata)[key];
+    try {
+      setIsProcessing(true);
+      setError(null);
+      await processWebsite(url);
+      await fetchDocuments();
+
+      toast({
+        title: 'Success',
+        description: 'Website content processed successfully'
+      });
+
+      setUrl('');
+    } catch (error) {
+      console.error('Error processing website:', error);
+      setError(error.message);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to process website content',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsProcessing(false);
     }
-    return undefined;
   };
 
   const handleDelete = async (id: string) => {
@@ -95,6 +113,9 @@ export default function WebsiteContent() {
       });
 
       setDocuments(documents.filter((doc) => doc.id !== id));
+      if (selectedDoc?.id === id) {
+        setSelectedDoc(null);
+      }
     } catch (error) {
       console.error('Error deleting document:', error);
       toast({
@@ -116,10 +137,44 @@ export default function WebsiteContent() {
   }
 
   return (
-    <div className='space-y-6'>
+    <div className='space-y-6 p-6'>
       <h1 className='text-2xl font-bold'>Website Content Management</h1>
 
-      <WebsiteProcessor onSuccess={handleProcessSuccess} />
+      <Card className='p-6'>
+        <h2 className='text-lg font-semibold mb-4'>Process New Website</h2>
+        <form onSubmit={handleSubmit} className='space-y-4'>
+          <div className='space-y-2'>
+            <label htmlFor='url' className='text-sm font-medium'>
+              Website URL
+            </label>
+            <Input
+              id='url'
+              type='url'
+              placeholder='https://example.com'
+              value={url}
+              onChange={(e) => {
+                setUrl(e.target.value);
+                setError(null);
+              }}
+              required
+              className={error ? 'border-red-500' : ''}
+            />
+            {error && (
+              <p className="text-sm text-red-500 mt-1">{error}</p>
+            )}
+          </div>
+          <Button type='submit' disabled={isProcessing}>
+            {isProcessing ? (
+              <>
+                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                Processing...
+              </>
+            ) : (
+              'Process Website'
+            )}
+          </Button>
+        </form>
+      </Card>
 
       <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
         <Card className='p-4'>
@@ -135,14 +190,12 @@ export default function WebsiteContent() {
                   onClick={() => setSelectedDoc(doc)}
                 >
                   <p className='font-medium text-sm text-blue-600'>
-                    {getMetadataValue(doc, 'source_url')}
+                    {doc.metadata.source_url}
                   </p>
                   <p className='text-xs text-gray-500 mt-1'>
                     Processed:{' '}
-                    {getMetadataValue(doc, 'processed_at')
-                      ? new Date(
-                          getMetadataValue(doc, 'processed_at')!
-                        ).toLocaleString()
+                    {doc.metadata.processed_at
+                      ? new Date(doc.metadata.processed_at).toLocaleString()
                       : 'Unknown date'}
                   </p>
                 </Card>
@@ -185,12 +238,12 @@ export default function WebsiteContent() {
                 <TableRow key={doc.id}>
                   <TableCell className='max-w-[200px] truncate'>
                     <a
-                      href={getMetadataValue(doc, 'source_url')}
+                      href={doc.metadata.source_url}
                       target='_blank'
                       rel='noopener noreferrer'
                       className='text-blue-600 hover:underline'
                     >
-                      {getMetadataValue(doc, 'source_url')}
+                      {doc.metadata.source_url}
                     </a>
                   </TableCell>
                   <TableCell className='max-w-[400px]'>
@@ -226,7 +279,6 @@ export default function WebsiteContent() {
         </div>
       </Card>
 
-      {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

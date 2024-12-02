@@ -1,89 +1,85 @@
-// @deno-types="https://raw.githubusercontent.com/denoland/deno/main/cli/dts/lib.deno.ns.d.ts"
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
-import { Configuration, OpenAIApi } from 'https://esm.sh/openai@3.3.0';
+/// <reference path="./deno.d.ts" />
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, GET, OPTIONS'
-};
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { corsHeaders } from '../_shared/cors.ts';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-serve(async (req) => {
-  // Handle CORS preflight requests
+interface Document {
+  id: string;
+  content: string;
+  metadata: {
+    source_url?: string;
+    title?: string;
+    description?: string;
+  };
+}
+
+interface ProcessedDocument extends Document {
+  similarity: number;
+}
+
+serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
 
   try {
     const { query } = await req.json();
-
-    // Initialize OpenAI
-    const openAiConfig = new Configuration({
-      apiKey: Deno.env.get('OPENAI_API_KEY'),
-    });
-    const openai = new OpenAIApi(openAiConfig);
-
-    // Generate embedding for the query
-    const embeddingResponse = await openai.createEmbedding({
-      model: "text-embedding-ada-002",
-      input: query,
-    });
-
-    const [{ embedding }] = embeddingResponse.data.data;
-
-    // Connect to Supabase
-    const supabaseClient = createClient(
+    
+    const supabase: SupabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Query for similar documents with improved matching
-    const { data: documents, error } = await supabaseClient.rpc(
-      'match_documents',
-      {
-        query_embedding: embedding,
-        similarity_threshold: 0.6, // Adjust this threshold based on your needs
-        match_count: 5, // Increased to get more potential matches
-      }
-    );
+    const { data: documents, error } = await supabase
+      .from('documents')
+      .select('*')
+      .textSearch('content', query, {
+        type: 'websearch',
+        config: 'english'
+      })
+      .limit(5);
 
     if (error) throw error;
 
-    // Process and clean up the documents
-    const processedDocuments = documents
-      .filter(doc => doc.similarity > 0.6) // Additional relevance filter
-      .map(doc => ({
-        ...doc,
-        content: doc.content
-          .split('\n')
-          .filter(para => para.trim().length > 0)
-          .join('\n\n'),
-        metadata: {
-          ...doc.metadata,
-          processed_at: new Date().toISOString()
+    // Calculate similarity scores
+    const processedDocs: ProcessedDocument[] = documents.map(doc => ({
+      ...doc,
+      similarity: calculateSimilarity(query, doc.content)
+    })).sort((a, b) => b.similarity - a.similarity);
+
+    return new Response(
+      JSON.stringify({ documents: processedDocs }),
+      {
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
         }
-      }))
-      .sort((a, b) => b.similarity - a.similarity); // Sort by relevance
-
-    return new Response(
-      JSON.stringify({ 
-        documents: processedDocuments,
-        query_text: query,
-        total_matches: processedDocuments.length
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      }
     );
-
   } catch (error) {
-    console.error('Error in match-documents function:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
-      { 
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
+      {
+        status: 400,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
       }
     );
   }
 });
+
+function calculateSimilarity(query: string, content: string): number {
+  // Simple TF-IDF based similarity
+  const queryWords = new Set(query.toLowerCase().split(/\W+/));
+  const contentWords = content.toLowerCase().split(/\W+/);
+  
+  let matches = 0;
+  queryWords.forEach(word => {
+    if (contentWords.includes(word)) matches++;
+  });
+  
+  return matches / queryWords.size;
+}
