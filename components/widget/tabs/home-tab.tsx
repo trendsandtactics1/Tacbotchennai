@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { Bot, ChevronDown, Loader2 } from 'lucide-react';
+import { Bot, ChevronDown, Loader2, X } from 'lucide-react';
 import * as Accordion from '@radix-ui/react-accordion';
 import { useState, useEffect } from 'react';
 import { AnnouncementService } from '@/lib/services/announcement-service';
@@ -11,9 +11,10 @@ import Link from 'next/link';
 
 interface HomeTabProps {
   onChatClick: () => void;
+  onClose?: () => void;
 }
 
-export function HomeTab({ onChatClick }: HomeTabProps) {
+export function HomeTab({ onChatClick, onClose }: HomeTabProps) {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -49,22 +50,31 @@ export function HomeTab({ onChatClick }: HomeTabProps) {
   return (
     <div className='flex flex-col gap-6 animate-fade-in p-4'>
       {/* Hero Section */}
-      <div className='flex justify-between p-5 rounded-lg mt-2 items-start mb-4 bg-gradient-to-r from-red-500 to-yellow-500'>
-        <div className='flex flex-col items-start gap-6'>
-          <Image
-            src='/logo.jpg'
-            alt='Logo'
-            width={100}
-            height={100}
-            className='h-20 w-20 rounded-full object-cover'
-          />
-          <div>
-            <h1 className='text-2xl font-semibold mb-2 text-white'>
-              Hello there.
-            </h1>
-            <h2 className='text-3xl font-semibold text-white'>
-              How can we help?
-            </h2>
+      <div className='relative text-black'>
+        <button
+          onClick={onClose}
+          className='absolute top-8 right-5 text-white hover:opacity-75'
+          aria-label='Close widget'
+        >
+          <X size={20} />
+        </button>
+        <div className='flex justify-between p-5 rounded-lg mt-2 items-start mb-4 bg-gradient-to-r from-red-500 to-yellow-500'>
+          <div className='flex flex-col items-start gap-6'>
+            <Image
+              src='/logo.jpg'
+              alt='Logo'
+              width={100}
+              height={100}
+              className='h-20 w-20 rounded-full object-cover'
+            />
+            <div>
+              <h1 className='text-2xl font-semibold mb-2 text-white'>
+                Hello there.
+              </h1>
+              <h2 className='text-3xl font-semibold text-white'>
+                How can we help?
+              </h2>
+            </div>
           </div>
         </div>
       </div>

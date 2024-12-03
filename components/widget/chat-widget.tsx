@@ -120,8 +120,8 @@ function ChatWidgetContent() {
               isMobile
                 ? 'fixed inset-0 w-full h-full rounded-none'
                 : isExpanded
-                ? 'fixed bottom-4 right-6 w-[700px] h-[600px] rounded-lg'
-                : 'fixed bottom-4 right-6 w-96 h-[600px] rounded-lg'
+                ? 'fixed bottom-20 right-6 w-[700px] h-[600px] rounded-lg'
+                : 'fixed bottom-20 right-6 w-96 h-[600px] rounded-lg'
             }`}
         >
           {/* Conditional Header */}
@@ -135,7 +135,10 @@ function ChatWidgetContent() {
           >
             <div className='flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide scroll-smooth'>
               {activeTab === 'home' && (
-                <HomeTab onChatClick={() => setActiveTab('message')} />
+                <HomeTab 
+                  onChatClick={() => setActiveTab('message')} 
+                  onClose={() => setIsWidgetOpen(false)}
+                />
               )}
               {activeTab === 'message' && <MessageTab />}
               {activeTab === 'enquiry' && <EnquiryTab />}
