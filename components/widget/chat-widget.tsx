@@ -42,7 +42,6 @@ export function ChatWidget() {
 }
 
 function ChatWidgetContent() {
-  const [isIconsOpen, setIsIconsOpen] = useState(false);
   const [isWidgetOpen, setIsWidgetOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('home');
   const isMobile = useIsMobile();
@@ -56,7 +55,6 @@ function ChatWidgetContent() {
         !widgetRef.current.contains(event.target as Node)
       ) {
         setIsWidgetOpen(false);
-        setIsIconsOpen(false);
       }
     };
 
@@ -64,18 +62,8 @@ function ChatWidgetContent() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const toggleIcons = () => {
-    if (isWidgetOpen) {
-      setIsWidgetOpen(false);
-    } else {
-      setIsIconsOpen(!isIconsOpen);
-    }
-  };
-
-  const handleIconClick = (tabId: string) => {
-    setActiveTab(tabId);
-    setIsWidgetOpen(true);
-    setIsIconsOpen(false);
+  const toggleWidget = () => {
+    setIsWidgetOpen(!isWidgetOpen);
   };
 
   const renderHeader = () => {
@@ -117,44 +105,11 @@ function ChatWidgetContent() {
         }`}
       >
         <button
-          onClick={toggleIcons}
+          onClick={toggleWidget}
           className='h-12 w-12 rounded-full bg-black text-white shadow-lg flex items-center justify-center hover:opacity-90 transition-all duration-300'
         >
           <MessageCircle size={24} />
         </button>
-
-        {/* Icons Menu */}
-        <div
-          className={`absolute bottom-16 right-0 transition-all duration-300 origin-bottom-right ${
-            isIconsOpen
-              ? 'scale-100 opacity-100'
-              : 'scale-95 opacity-0 pointer-events-none'
-          }`}
-        >
-          <div className='bg-white rounded-lg shadow-xl p-2'>
-            <div className='flex flex-col gap-3'>
-              {tabs.map((tab, index) => (
-                <div
-                  key={tab.id}
-                  className='animate-in fade-in'
-                  style={{ animationDelay: `${index * 50}ms` }}
-                >
-                  <Tooltip text={tab.label}>
-                    <button
-                      onClick={() => handleIconClick(tab.id)}
-                      className='h-10 w-10 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors relative group'
-                    >
-                      <tab.Icon
-                        size={20}
-                        className='text-gray-700 transition-transform duration-200 group-hover:scale-110'
-                      />
-                    </button>
-                  </Tooltip>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Full Widget */}
