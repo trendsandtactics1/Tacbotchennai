@@ -10,7 +10,8 @@ import {
   FileText,
   Globe,
   Menu,
-  X
+  X,
+  AlertTriangle
 } from 'lucide-react';
 import { useState } from 'react';
 import { Logo } from '../logo';
@@ -25,6 +26,11 @@ const navigation = [
     name: 'Conversations',
     href: '/admin/conversations',
     icon: MessageCircle
+  },
+  {
+    name: 'Enquiries',
+    href: '/admin/enquiries',
+    icon: AlertTriangle
   },
   {
     name: 'Announcements',

@@ -51,3 +51,24 @@ export interface Message {
   role: 'user' | 'assistant';
   created_at: string;
 }
+
+export interface AdminEnquiry {
+  id: string;
+  subject: string;
+  status: 'pending' | 'active' | 'resolved';
+  created_at: string;
+  updated_at: string;
+  users: {
+    name: string;
+    mobile: string;
+  };
+  messages: EnquiryMessage[];
+}
+
+export interface EnquiryMessage {
+  id: string;
+  enquiry_id: string;
+  content: string;
+  sender_type: 'user' | 'admin';
+  created_at: string;
+}

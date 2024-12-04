@@ -102,17 +102,17 @@ function ChatWidgetContent() {
     }
 
     if (isExpanded) {
-      return `fixed bottom-20 right-6 
+      return `fixed bottom-4 right-4 
         2xl:w-[800px] 2xl:h-[700px]
-        xl:w-[700px] xl:h-[540px]
+        xl:w-[700px] xl:h-[600px]
         lg:w-[600px] lg:h-[540px]
         md:w-[500px] md:h-[500px]
         rounded-lg`;
     }
 
-    return `fixed bottom-20 right-6
+    return `fixed bottom-4 right-4
       2xl:w-[400px] 2xl:h-[600px]
-      xl:w-[380px] xl:h-[540px]
+      xl:w-[380px] xl:h-[600px]
       lg:w-[350px] lg:h-[500px]
       md:w-[320px] md:h-[480px]
       rounded-lg`;

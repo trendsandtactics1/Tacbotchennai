@@ -20,6 +20,8 @@ import type {
   ViewType
 } from '@/types/enquiry';
 import toast from 'react-hot-toast';
+import { supabase } from '@/lib/supabase/client';
+import Image from 'next/image';
 
 export function EnquiryTab() {
   const [view, setView] = useState<ViewType>('welcome');
@@ -132,7 +134,10 @@ export function EnquiryTab() {
         messageContent,
         'user'
       );
-      setMessages((prev) => [...prev, message]);
+      const updatedMessages = await EnquiryService.getEnquiryMessages(
+        currentEnquiryId
+      );
+      setMessages(updatedMessages);
 
       // Refresh enquiries list to update last message
       if (userDetails?.id) {
@@ -155,6 +160,30 @@ export function EnquiryTab() {
       setMessages(messages);
       setCurrentEnquiryId(enquiryId);
       setView('chat');
+
+      // Subscribe to real-time updates when entering chat
+      const messagesSubscription = supabase
+        .channel(`enquiry-messages-${enquiryId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'enquiry_messages',
+            filter: `enquiry_id=eq.${enquiryId}`
+          },
+          async () => {
+            const updatedMessages = await EnquiryService.getEnquiryMessages(
+              enquiryId
+            );
+            setMessages(updatedMessages);
+          }
+        )
+        .subscribe();
+
+      return () => {
+        messagesSubscription.unsubscribe();
+      };
     } catch (error) {
       console.error('Error loading messages:', error);
       toast.error('Failed to load messages');
@@ -162,6 +191,31 @@ export function EnquiryTab() {
       setIsLoading(false);
     }
   };
+
+  // Add this useEffect for real-time enquiry updates
+  useEffect(() => {
+    if (!userDetails?.id) return;
+
+    const enquiriesSubscription = supabase
+      .channel(`user-enquiries-${userDetails.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'enquiries',
+          filter: `user_id=eq.${userDetails.id}`
+        },
+        async () => {
+          await loadEnquiries();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      enquiriesSubscription.unsubscribe();
+    };
+  }, [userDetails?.id, loadEnquiries]);
 
   // Welcome View
   if (view === 'welcome') {
@@ -405,21 +459,125 @@ export function EnquiryTab() {
 
   // Chat View
   return (
-    <div className='flex flex-col h-full'>
-      <div className='flex-1 overflow-y-auto p-4'>{/* Messages content */}</div>
+    <div className='flex flex-col h-full bg-gray-50'>
+      {/* Header */}
+      <div className='flex items-center gap-3 p-4 bg-white border-b shadow-sm'>
+        <button
+          onClick={() => setView('list')}
+          className='hover:bg-gray-100 p-2 rounded-full transition-colors'
+        >
+          <ArrowLeft size={20} />
+        </button>
+        <div>
+          <h2 className='font-semibold text-gray-900'>
+            {enquiries.find((e) => e.id === currentEnquiryId)?.subject}
+          </h2>
+          <p className='text-sm text-gray-500'>
+            {enquiries.find((e) => e.id === currentEnquiryId)?.status}
+          </p>
+        </div>
+      </div>
 
-      {/* Message input area - fixed at bottom */}
-      <div className='border-t p-4 bg-white'>
-        <div className='relative flex items-center gap-2'>
+      {/* Messages */}
+      <div className='flex-1 overflow-y-auto p-4 space-y-6'>
+        {messages.map((message) => (
+          <div
+            key={message.id}
+            className={`flex items-end gap-3 ${
+              message.sender_type === 'user' ? 'justify-end' : 'justify-start'
+            }`}
+          >
+            {/* Admin Avatar - Only show for admin messages */}
+            {message.sender_type === 'admin' && (
+              <div className='w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center'>
+                <Image
+                  src='/admin.png'
+                  alt='User Icon'
+                  width={30}
+                  height={30}
+                />
+              </div>
+            )}
+
+            {/* Message Content */}
+            <div
+              className={`flex flex-col ${
+                message.sender_type === 'user' ? 'items-end' : 'items-start'
+              }`}
+            >
+              <div
+                className={`max-w-[280px] rounded-2xl px-4 py-3 ${
+                  message.sender_type === 'user'
+                    ? 'bg-blue-500 text-white rounded-br-none ml-auto'
+                    : 'bg-white text-gray-900 shadow-sm rounded-bl-none border'
+                }`}
+              >
+                <p className='text-sm whitespace-pre-wrap'>{message.content}</p>
+              </div>
+              <span className='text-xs text-gray-500 mt-1 px-1'>
+                {new Date(message.created_at).toLocaleTimeString([], {
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+              </span>
+            </div>
+
+            {/* User Avatar - Only show for user messages */}
+            {message.sender_type === 'user' && (
+              <div className='w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center'>
+                <Image
+                  src='/user-icon.png'
+                  alt='User Icon'
+                  width={30}
+                  height={30}
+                />
+              </div>
+            )}
+          </div>
+        ))}
+
+        {/* Loading State */}
+        {isSending && (
+          <div className='flex items-end gap-3'>
+            <div className='w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center'>
+              <Image src='/admin.png' alt='User Icon' width={30} height={30} />
+            </div>
+            <div className='bg-white rounded-2xl rounded-bl-none px-4 py-3 shadow-sm border'>
+              <Loader2 className='w-5 h-5 animate-spin text-gray-400' />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Message Input */}
+      <div className='p-4 bg-white border-t'>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSendMessage();
+          }}
+          className='flex gap-2'
+        >
           <input
             type='text'
             placeholder='Type your message...'
-            className='w-full rounded-full border border-gray-200 py-2 px-4 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent'
+            className='flex-1 p-3 bg-gray-50 border rounded-full focus:ring-2 focus:ring-blue-500 focus:outline-none'
+            value={currentMessage}
+            onChange={(e) => setCurrentMessage(e.target.value)}
+            disabled={isSending}
           />
-          <button className='rounded-full bg-rose-600 p-2 text-white hover:bg-rose-700 transition'>
-            <Send size={20} />
+          <button
+            type='submit'
+            disabled={!currentMessage.trim() || isSending}
+            className='bg-blue-500 text-white p-3 rounded-full hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:hover:bg-blue-500'
+          >
+            {isSending ? (
+              <Loader2 size={20} className='animate-spin' />
+            ) : (
+              <Send size={20} />
+            )}
           </button>
-        </div>
+        </form>
       </div>
     </div>
   );

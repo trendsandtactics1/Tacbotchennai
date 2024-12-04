@@ -11,7 +11,7 @@ export interface EnquiryMessage {
   id: string;
   enquiry_id: string;
   content: string;
-  role: 'user' | 'admin';
+  sender_type: 'user' | 'admin';
   created_at: string;
 }
 

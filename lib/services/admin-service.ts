@@ -4,7 +4,9 @@ import type {
   Message,
   RecentActivity,
   RecentChat,
-  RecentEnquiry
+  RecentEnquiry,
+  AdminEnquiry,
+  EnquiryMessage
 } from '@/types/admin';
 
 export class AdminService {
@@ -172,6 +174,86 @@ export class AdminService {
       return data ?? [];
     } catch (error) {
       console.error('Error fetching messages:', error);
+      throw error;
+    }
+  }
+
+  static async getAdminEnquiries(): Promise<AdminEnquiry[]> {
+    try {
+      const { data, error } = await supabase
+        .from('enquiries')
+        .select(`
+          *,
+          users!enquiries_user_id_fkey (
+            name,
+            mobile
+          ),
+          enquiry_messages!inner (
+            id,
+            content,
+            sender_type,
+            created_at
+          )
+        `)
+        .order('updated_at', { ascending: false });
+
+      if (error) throw error;
+
+      return data.map((enquiry) => ({
+        ...enquiry,
+        users: enquiry.users,
+        messages: enquiry.enquiry_messages
+      }));
+    } catch (error) {
+      console.error('Error fetching admin enquiries:', error);
+      throw error;
+    }
+  }
+
+  static async getEnquiryMessages(enquiryId: string): Promise<EnquiryMessage[]> {
+    try {
+      const { data, error } = await supabase
+        .from('enquiry_messages')
+        .select('*')
+        .eq('enquiry_id', enquiryId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error fetching enquiry messages:', error);
+      throw error;
+    }
+  }
+
+  static async sendEnquiryMessage(
+    enquiryId: string,
+    content: string
+  ): Promise<void> {
+    try {
+      const { error: messageError } = await supabase
+        .from('enquiry_messages')
+        .insert([
+          {
+            enquiry_id: enquiryId,
+            content,
+            sender_type: 'admin',
+            created_at: new Date().toISOString()
+          }
+        ]);
+
+      if (messageError) throw messageError;
+
+      // Update enquiry status to active if it was pending
+      const { error: statusError } = await supabase
+        .from('enquiries')
+        .update({ status: 'active', updated_at: new Date().toISOString() })
+        .eq('id', enquiryId)
+        .eq('status', 'pending');
+
+      if (statusError) throw statusError;
+    } catch (error) {
+      console.error('Error sending enquiry message:', error);
       throw error;
     }
   }

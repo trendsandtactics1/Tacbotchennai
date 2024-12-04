@@ -102,18 +102,19 @@ export class EnquiryService {
   static async sendMessage(
     enquiryId: string,
     content: string,
-    senderType: 'user' | 'admin'
+    sender_type: 'user' | 'admin'
   ) {
     try {
       const timestamp = new Date().toISOString();
-
+      
+      // Insert the message
       const { data, error } = await supabase
         .from('enquiry_messages')
         .insert([
           {
             enquiry_id: enquiryId,
             content,
-            sender_type: senderType,
+            sender_type,
             created_at: timestamp
           }
         ])
@@ -122,11 +123,17 @@ export class EnquiryService {
 
       if (error) throw error;
 
-      // Update enquiry timestamp
-      await supabase
-        .from('enquiries')
-        .update({ updated_at: timestamp })
-        .eq('id', enquiryId);
+      // Manually update enquiry status if needed
+      if (sender_type === 'admin') {
+        await supabase
+          .from('enquiries')
+          .update({ 
+            status: 'active',
+            updated_at: timestamp 
+          })
+          .eq('id', enquiryId)
+          .eq('status', 'pending');
+      }
 
       return data;
     } catch (error) {
