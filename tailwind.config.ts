@@ -1,8 +1,8 @@
 import { Config } from 'tailwindcss';
 import animate from 'tailwindcss-animate';
+import typography from '@tailwindcss/typography';
 
 export default {
-  darkMode: ['class'],
   content: [
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -11,7 +11,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        poppins: ['var(--font-poppins)', 'sans-serif'],
+        poppins: ['var(--font-poppins)', 'sans-serif']
       },
       colors: {
         background: 'hsl(var(--background))',
@@ -44,9 +44,6 @@ export default {
           DEFAULT: 'hsl(var(--destructive))',
           foreground: 'hsl(var(--destructive-foreground))'
         },
-        border: 'hsl(var(--border))',
-        input: 'hsl(var(--input))',
-        ring: 'hsl(var(--ring))',
         chart: {
           '1': 'hsl(var(--chart-1))',
           '2': 'hsl(var(--chart-2))',
@@ -63,6 +60,15 @@ export default {
           'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
           border: 'hsl(var(--sidebar-border))',
           ring: 'hsl(var(--sidebar-ring))'
+        },
+        border: {
+          DEFAULT: 'hsl(var(--border))'
+        },
+        input: {
+          DEFAULT: 'hsl(var(--input))'
+        },
+        ring: {
+          DEFAULT: 'hsl(var(--ring))'
         }
       },
       borderRadius: {
@@ -72,20 +78,12 @@ export default {
       },
       keyframes: {
         'accordion-down': {
-          from: {
-            height: '0'
-          },
-          to: {
-            height: 'var(--radix-accordion-content-height)'
-          }
+          from: { height: '0' },
+          to: { height: 'var(--radix-accordion-content-height)' }
         },
         'accordion-up': {
-          from: {
-            height: 'var(--radix-accordion-content-height)'
-          },
-          to: {
-            height: '0'
-          }
+          from: { height: 'var(--radix-accordion-content-height)' },
+          to: { height: '0' }
         },
         slideIn: {
           '0%': { transform: 'translateY(100%)' },
@@ -127,8 +125,25 @@ export default {
         bounce: 'bounce 2s infinite',
         slideDown: 'slideDown 300ms cubic-bezier(0.87, 0, 0.13, 1)',
         slideUp: 'slideUp 300ms cubic-bezier(0.87, 0, 0.13, 1)'
-      }
+      },
+      borderColor: {
+        DEFAULT: 'hsl(var(--border))'
+      },
+      typography: {
+        DEFAULT: {
+          css: {
+            maxWidth: 'none',
+            color: 'inherit',
+            a: {
+              color: 'inherit',
+              textDecoration: 'none',
+              fontWeight: '500',
+            },
+            // Add any other typography customizations here
+          },
+        },
+      },
     }
   },
-  plugins: [animate]
+  plugins: [animate, typography]
 } satisfies Config;

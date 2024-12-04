@@ -1,19 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import {
-  Loader2,
-  ArrowLeft,
-  Youtube,
-  Minimize2,
-  Maximize2
-} from 'lucide-react';
+import { Loader2, ArrowLeft } from 'lucide-react';
 import { ArticleService } from '@/lib/services/article-service';
-import type { Article } from '@/types/article';
+import type { Article } from '@/types/admin';
 import toast from 'react-hot-toast';
 import Image from 'next/image';
-import Link from 'next/link';
 import { useWidget } from '@/contexts/widget-context';
+import ReactMarkdown from 'react-markdown';
 
 export function ArticleTab() {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -27,12 +21,17 @@ export function ArticleTab() {
   }, []);
 
   useEffect(() => {
-    // Reset selected article when tab changes
     return () => {
       setSelectedArticle(null);
       setIsExpanded(false);
     };
   }, [setIsExpanded]);
+
+  useEffect(() => {
+    if (selectedArticle) {
+      setIsExpanded(true);
+    }
+  }, [selectedArticle, setIsExpanded]);
 
   const loadArticles = async () => {
     try {
@@ -48,6 +47,22 @@ export function ArticleTab() {
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const getYoutubeEmbedUrl = (url: string) => {
+    try {
+      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+      const match = url.match(regExp);
+      
+      if (match && match[2].length === 11) {
+        return `https://www.youtube.com/embed/${match[2]}`;
+      }
+      
+      return url;
+    } catch (error) {
+      console.error('Error parsing YouTube URL:', error);
+      return url;
     }
   };
 
@@ -86,47 +101,42 @@ export function ArticleTab() {
           </div>
         </div>
         <div className='flex-1 overflow-y-auto'>
-          <div className='max-w-2xl mx-auto p-6'>
-            <article className='prose prose-sm max-w-none'>
-              {selectedArticle.image_url && (
-                <div className='relative w-full h-64 mb-6 rounded-lg overflow-hidden'>
-                  <Image
-                    src={selectedArticle.image_url}
-                    alt={selectedArticle.title}
-                    fill
-                    className='object-cover'
-                  />
-                </div>
-              )}
-              <h1 className='text-2xl font-semibold text-gray-900 mb-4'>
-                {selectedArticle.title}
-              </h1>
-              {selectedArticle.youtube_url && (
-                <div className='mb-4'>
-                  <Link
-                    href={selectedArticle.youtube_url}
-                    target='_blank'
-                    rel='noopener noreferrer'
-                    className='flex items-center gap-2 text-red-500 hover:text-red-600 transition-colors'
-                  >
-                    <Youtube size={20} />
-                    <span>Watch on YouTube</span>
-                  </Link>
-                </div>
-              )}
-              <div className='prose prose-sm max-w-none'>
-                {selectedArticle.content.split('\n').map((paragraph, index) => (
-                  <p key={index} className='mb-4 text-gray-600'>
-                    {paragraph}
-                  </p>
-                ))}
+          <article className='prose prose-sm md:prose-base lg:prose-lg max-w-none p-4'>
+            {selectedArticle.image_url && (
+              <div className='relative w-full h-64 mb-6 rounded-lg overflow-hidden'>
+                <Image
+                  src={selectedArticle.image_url}
+                  alt={selectedArticle.title}
+                  fill
+                  className='object-cover'
+                />
               </div>
-              <div className='text-sm text-gray-400 mt-4'>
-                Published on{' '}
-                {new Date(selectedArticle.created_at).toLocaleDateString()}
+            )}
+            <h1 className='text-2xl font-semibold text-gray-900 mb-4'>
+              {selectedArticle.title}
+            </h1>
+            <div 
+              className='prose prose-sm md:prose-base lg:prose-lg max-w-none'
+              dangerouslySetInnerHTML={{ __html: selectedArticle.content }}
+            />
+            {selectedArticle.youtube_url && (
+              <div className='mt-8 mb-4 aspect-video w-full'>
+                <h3 className='text-lg font-semibold mb-4'>Related Video</h3>
+                <iframe
+                  src={getYoutubeEmbedUrl(selectedArticle.youtube_url)}
+                  title="YouTube video player"
+                  className='w-full h-full rounded-lg'
+                  allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
+                  allowFullScreen
+                  frameBorder="0"
+                />
               </div>
-            </article>
-          </div>
+            )}
+            <div className='text-sm text-gray-400 mt-4'>
+              Published on{' '}
+              {new Date(selectedArticle.created_at).toLocaleDateString()}
+            </div>
+          </article>
         </div>
       </div>
     );
@@ -146,7 +156,6 @@ export function ArticleTab() {
               key={article.id}
               onClick={() => {
                 setSelectedArticle(article);
-                setIsExpanded(true);
               }}
               className='bg-white rounded-lg border p-4 hover:shadow-md transition-all duration-300 cursor-pointer'
             >
@@ -167,16 +176,18 @@ export function ArticleTab() {
                   <p className='text-sm text-gray-600 mt-1 line-clamp-2'>
                     {article.description}
                   </p>
-                  <div className='flex gap-2 mt-2'>
-                    {article.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className='px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs'
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
+                  {article.tags && (
+                    <div className='flex gap-2 mt-2'>
+                      {article.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className='px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs'
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

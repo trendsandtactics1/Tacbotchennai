@@ -86,9 +86,9 @@ export function AnnouncementTab() {
               {announcement.link && (
                 <Link
                   href={announcement.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-500 text-sm hover:underline inline-block mt-2"
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  className='text-blue-500 text-sm hover:underline inline-block mt-2'
                 >
                   Learn more
                 </Link>

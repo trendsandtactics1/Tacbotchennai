@@ -7,7 +7,11 @@ const nextConfig = {
     ignoreDuringBuilds: false
   },
   images: {
-    domains: ['cdn.pixabay.com', 'picsum.photos']
+    domains: [
+      'cdn.pixabay.com',
+      'picsum.photos',
+      'hdvkqosistjeknqzorcg.supabase.co'
+    ]
   }
 };
 

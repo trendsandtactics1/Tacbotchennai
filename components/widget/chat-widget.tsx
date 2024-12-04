@@ -11,8 +11,8 @@ import {
   Bot,
   MessageCircleHeart,
   Send,
-  MicVocalIcon,
-  Newspaper
+  Newspaper,
+  Mic
 } from 'lucide-react';
 import { HomeTab } from './tabs/home-tab';
 import Image from 'next/image';
@@ -29,7 +29,7 @@ const tabs = [
   { id: 'home', label: 'Home', Icon: Crown },
   { id: 'message', label: 'AI Chat', Icon: Bot },
   { id: 'enquiry', label: 'Message', Icon: Send },
-  { id: 'info', label: 'Info', Icon: MicVocalIcon },
+  { id: 'info', label: 'Info', Icon: Mic },
   { id: 'articles', label: 'Articles', Icon: Newspaper }
 ];
 
