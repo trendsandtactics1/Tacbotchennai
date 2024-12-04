@@ -56,7 +56,7 @@ export function HomeTab({ onChatClick, onClose }: HomeTabProps) {
           className='absolute top-8 right-5 text-white hover:opacity-75'
           aria-label='Close widget'
         >
-          <X size={20} />
+          <X size={20} className='text-white' />
         </button>
         <div className='flex justify-between p-5 rounded-lg mt-2 items-start mb-4 bg-gradient-to-r from-red-500 to-yellow-500'>
           <div className='flex flex-col items-start gap-6'>

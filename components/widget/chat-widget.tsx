@@ -90,10 +90,32 @@ function ChatWidgetContent() {
           onClick={() => setIsWidgetOpen(false)}
           className='text-white hover:opacity-75'
         >
-          <X size={20} />
+          <X size={20} className='text-gray-600' />
         </button>
       </div>
     );
+  };
+
+  const getWidgetDimensions = () => {
+    if (isMobile) {
+      return 'fixed inset-0 w-full h-full rounded-none';
+    }
+
+    if (isExpanded) {
+      return `fixed bottom-20 right-6 
+        2xl:w-[800px] 2xl:h-[700px]
+        xl:w-[700px] xl:h-[540px]
+        lg:w-[600px] lg:h-[540px]
+        md:w-[500px] md:h-[500px]
+        rounded-lg`;
+    }
+
+    return `fixed bottom-20 right-6
+      2xl:w-[400px] 2xl:h-[600px]
+      xl:w-[380px] xl:h-[540px]
+      lg:w-[350px] lg:h-[500px]
+      md:w-[320px] md:h-[480px]
+      rounded-lg`;
   };
 
   return (
@@ -116,13 +138,7 @@ function ChatWidgetContent() {
       {isWidgetOpen && (
         <div
           className={`bg-white shadow-xl animate-scale-in transition-all duration-300
-            ${
-              isMobile
-                ? 'fixed inset-0 w-full h-full rounded-none'
-                : isExpanded
-                ? 'fixed bottom-20 right-6 w-[700px] h-[600px] rounded-lg'
-                : 'fixed bottom-20 right-6 w-96 h-[600px] rounded-lg'
-            }`}
+            ${getWidgetDimensions()}`}
         >
           {/* Conditional Header */}
           {renderHeader()}
@@ -135,8 +151,8 @@ function ChatWidgetContent() {
           >
             <div className='flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide scroll-smooth'>
               {activeTab === 'home' && (
-                <HomeTab 
-                  onChatClick={() => setActiveTab('message')} 
+                <HomeTab
+                  onChatClick={() => setActiveTab('message')}
                   onClose={() => setIsWidgetOpen(false)}
                 />
               )}
