@@ -7,7 +7,7 @@ export class AnnouncementService {
       const { data, error } = await supabase
         .from('announcements')
         .select('*')
-        .eq('active', true)
+        .eq('status', 'published')
         .order('created_at', { ascending: false });
 
       if (error) throw error;

@@ -4,6 +4,7 @@ export interface Announcement {
   description: string;
   image_url?: string;
   link?: string;
+  status: 'draft' | 'published' | 'archived';
   created_at: string;
-  active: boolean;
+  updated_at: string;
 }

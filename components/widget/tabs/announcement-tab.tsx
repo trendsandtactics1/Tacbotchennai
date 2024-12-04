@@ -83,6 +83,16 @@ export function AnnouncementTab() {
               <p className='text-sm text-gray-600 mt-1'>
                 {announcement.description}
               </p>
+              {announcement.link && (
+                <Link
+                  href={announcement.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-500 text-sm hover:underline inline-block mt-2"
+                >
+                  Learn more
+                </Link>
+              )}
               <span className='text-xs text-gray-400 mt-2 block'>
                 {new Date(announcement.created_at).toLocaleDateString()}
               </span>
