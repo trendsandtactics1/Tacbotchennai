@@ -21,7 +21,7 @@ const FontSize = Extension.create({
       size: {
         default: null,
         parseHTML: (element: HTMLElement) => element.style.fontSize,
-        renderHTML: (attributes: Record<string, any>) => {
+        renderHTML: (attributes: Record<string, string>) => {
           if (!attributes.size) return {};
           return { style: `font-size: ${attributes.size}` };
         }
@@ -36,7 +36,7 @@ const FontSize = Extension.create({
           size: {
             default: null,
             parseHTML: (element: HTMLElement) => element.style.fontSize,
-            renderHTML: (attributes: Record<string, any>) => {
+            renderHTML: (attributes: Record<string, string>) => {
               if (!attributes.size) return {};
               return { style: `font-size: ${attributes.size}` };
             }

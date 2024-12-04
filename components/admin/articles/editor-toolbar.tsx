@@ -27,6 +27,8 @@ interface EditorToolbarProps {
   editor: Editor | null;
 }
 
+type Level = 1 | 2 | 3;
+
 export function EditorToolbar({ editor }: EditorToolbarProps) {
   if (!editor) return null;
 
@@ -37,10 +39,12 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
         <select
           className="p-2 rounded hover:bg-gray-100 outline-none"
           onChange={(e) => {
-            const level = parseInt(e.target.value);
-            level 
-              ? editor.chain().focus().toggleHeading({ level }).run()
-              : editor.chain().focus().setParagraph().run();
+            const value = parseInt(e.target.value);
+            if (value >= 1 && value <= 3) {
+              editor.chain().focus().toggleHeading({ level: value as Level }).run();
+            } else {
+              editor.chain().focus().setParagraph().run();
+            }
           }}
           value={
             editor.isActive('heading', { level: 1 })

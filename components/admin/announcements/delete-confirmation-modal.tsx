@@ -23,7 +23,7 @@ export function DeleteConfirmationModal({
           </button>
         </div>
         <p className="text-gray-600 mb-6">
-          Are you sure you want to delete "{title}"? This action cannot be undone.
+          Are you sure you want to delete &ldquo;{title}&rdquo;? This action cannot be undone.
         </p>
         <div className="flex justify-end gap-3">
           <button

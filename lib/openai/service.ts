@@ -2,13 +2,13 @@
 export async function generateAIResponse(message: string): Promise<string> {
   try {
     console.log('Sending request to chat API...');
-    
+
     const response = await fetch('/api/chat', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ message }),
+      body: JSON.stringify({ message })
     });
 
     const data = await response.json();
@@ -23,12 +23,15 @@ export async function generateAIResponse(message: string): Promise<string> {
     }
 
     return data.response;
-  } catch (error: any) {
+  } catch (error: Error | unknown) {
     console.error('Error details:', {
-      message: error.message,
-      stack: error.stack,
-      response: error.response
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
     });
-    throw new Error(`AI Response Error: ${error.message}`);
+    throw new Error(
+      `AI Response Error: ${
+        error instanceof Error ? error.message : 'Unknown error'
+      }`
+    );
   }
 }
