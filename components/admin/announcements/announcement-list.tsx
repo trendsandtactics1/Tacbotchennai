@@ -18,70 +18,71 @@ export function AnnouncementList({
   onEdit,
   onDelete
 }: AnnouncementListProps) {
-  const [deleteAnnouncement, setDeleteAnnouncement] = useState<Announcement | null>(null);
+  const [deleteAnnouncement, setDeleteAnnouncement] =
+    useState<Announcement | null>(null);
 
   return (
     <>
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
+      <div className='bg-white rounded-lg shadow-sm overflow-hidden'>
+        <div className='overflow-x-auto'>
+          <table className='w-full'>
+            <thead className='bg-gray-50'>
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
                   Image
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
                   Title & Description
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
                   Date
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className='bg-white divide-y divide-gray-200'>
               {announcements.map((announcement) => (
-                <tr key={announcement.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
+                <tr key={announcement.id} className='hover:bg-gray-50'>
+                  <td className='px-6 py-4 whitespace-nowrap'>
                     {announcement.image_url ? (
-                      <div className="relative w-20 h-20">
+                      <div className='relative w-20 h-20'>
                         <Image
                           src={announcement.image_url}
                           alt={announcement.title}
                           fill
-                          className="object-cover rounded-lg"
+                          className='object-cover rounded-lg'
                         />
                       </div>
                     ) : (
-                      <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center">
+                      <div className='w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center'>
                         No Image
                       </div>
                     )}
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm font-medium text-gray-900">
+                  <td className='px-6 py-4'>
+                    <div className='text-sm font-medium text-gray-900'>
                       {announcement.title}
                     </div>
-                    <div className="text-sm text-gray-500 line-clamp-2">
-                      {announcement.content}
+                    <div className='text-sm text-gray-500 line-clamp-2'>
+                      {announcement.description}
                     </div>
                     {announcement.link && (
                       <Link
                         href={announcement.link}
-                        target="_blank"
-                        className="text-blue-500 hover:text-blue-700 inline-flex items-center gap-1 mt-1"
+                        target='_blank'
+                        className='text-blue-500 hover:text-blue-700 inline-flex items-center gap-1 mt-1'
                       >
-                        <LinkIcon className="h-4 w-4" />
-                        <span className="text-sm">View Link</span>
+                        <LinkIcon className='h-4 w-4' />
+                        <span className='text-sm'>View Link</span>
                       </Link>
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className='px-6 py-4 whitespace-nowrap'>
                     <span
                       className={`px-2 py-1 text-xs rounded-full ${
                         announcement.status === 'published'
@@ -94,25 +95,25 @@ export function AnnouncementList({
                       {announcement.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-4 w-4" />
+                  <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500'>
+                    <div className='flex items-center gap-1'>
+                      <Clock className='h-4 w-4' />
                       {new Date(announcement.created_at).toLocaleDateString()}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex items-center gap-2">
+                  <td className='px-6 py-4 whitespace-nowrap text-right text-sm font-medium'>
+                    <div className='flex items-center gap-2'>
                       <button
                         onClick={() => onEdit(announcement)}
-                        className="text-blue-600 hover:text-blue-900"
+                        className='text-blue-600 hover:text-blue-900'
                       >
-                        <Edit2 className="h-4 w-4" />
+                        <Edit2 className='h-4 w-4' />
                       </button>
                       <button
                         onClick={() => setDeleteAnnouncement(announcement)}
-                        className="text-red-600 hover:text-red-900"
+                        className='text-red-600 hover:text-red-900'
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className='h-4 w-4' />
                       </button>
                     </div>
                   </td>
@@ -135,4 +136,4 @@ export function AnnouncementList({
       )}
     </>
   );
-} 
+}
