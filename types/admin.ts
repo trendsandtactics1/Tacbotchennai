@@ -47,6 +47,7 @@ export interface Conversation {
 
 export interface Message {
   id: string;
+  chat_id: string;
   content: string;
   role: 'user' | 'assistant';
   created_at: string;
@@ -103,4 +104,23 @@ export interface Article {
   created_at: string;
   updated_at: string;
   tags?: string[];
+}
+
+export interface Document {
+  id: string;
+  content: string;
+  metadata: {
+    source_url?: string;
+    processed_at?: string;
+    title?: string;
+  };
+  embedding?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ChatError {
+  message: string;
+  code?: string;
+  details?: unknown;
 }

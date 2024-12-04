@@ -135,18 +135,21 @@ export function MessageTab() {
 
     const messageContent = currentMessage;
     setCurrentMessage('');
-    setMessages((prev) => [...prev, { type: 'user', content: messageContent }]);
     setIsSending(true);
 
     try {
-      const { aiMessage } = await ChatService.sendMessage(
+      const { userMessage, aiMessage } = await ChatService.sendMessage(
         currentChatId,
         messageContent
       );
-      setMessages((prev) => [
-        ...prev,
-        { type: 'bot', content: aiMessage.content }
-      ]);
+
+      if (userMessage && aiMessage) {
+        setMessages((prev) => [
+          ...prev,
+          { type: 'user', content: userMessage.content },
+          { type: 'bot', content: aiMessage.content }
+        ]);
+      }
     } catch (error) {
       console.error('Error sending message:', error);
       toast.error('Failed to send message');
@@ -456,7 +459,12 @@ export function MessageTab() {
                   className='w-full px-4 py-3 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent'
                   value={currentMessage}
                   onChange={(e) => setCurrentMessage(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
                   disabled={isSending}
                 />
               </div>

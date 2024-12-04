@@ -1,6 +1,7 @@
 // src/lib/services/chat-service.ts
 import { supabase } from '../supabase/client';
 import { generateAIResponse } from '../openai/service';
+import { Message } from '@/types/admin';
 
 export class ChatService {
   static async createUser(name: string, mobile: string) {
@@ -24,8 +25,8 @@ export class ChatService {
       const { data, error } = await supabase
         .from('users')
         .insert([
-          { 
-            name, 
+          {
+            name,
             mobile,
             role: 'user',
             created_at: new Date().toISOString(),
@@ -134,21 +135,21 @@ export class ChatService {
     }
   }
 
-  static async sendMessage(chatId: string, content: string) {
+  static async sendMessage(
+    sessionId: string,
+    content: string,
+    role: 'user' | 'assistant' = 'user'
+  ): Promise<{ userMessage: Message; aiMessage: Message }> {
     try {
-      const timestamp = new Date().toISOString();
-
       // Save user message
       const { data: userMessage, error: userError } = await supabase
         .from('messages')
-        .insert([
-          {
-            chat_id: chatId,
-            content,
-            role: 'user',
-            created_at: timestamp
-          }
-        ])
+        .insert({
+          chat_id: sessionId,
+          content,
+          role: 'user',
+          created_at: new Date().toISOString()
+        })
         .select()
         .single();
 
@@ -157,25 +158,22 @@ export class ChatService {
       // Update chat timestamp
       await supabase
         .from('chat_histories')
-        .update({ updated_at: timestamp })
-        .eq('id', chatId);
+        .update({ updated_at: new Date().toISOString() })
+        .eq('id', sessionId);
 
-      // Generate and save AI response
       try {
-        const aiResponse = await generateAIResponse([
-          { role: 'user', content }
-        ]);
+        // Generate AI response
+        const aiResponse = await generateAIResponse(content);
 
+        // Save AI response
         const { data: aiMessage, error: aiError } = await supabase
           .from('messages')
-          .insert([
-            {
-              chat_id: chatId,
-              content: aiResponse,
-              role: 'assistant',
-              created_at: new Date().toISOString()
-            }
-          ])
+          .insert({
+            chat_id: sessionId,
+            content: aiResponse,
+            role: 'assistant',
+            created_at: new Date().toISOString()
+          })
           .select()
           .single();
 
@@ -188,25 +186,29 @@ export class ChatService {
             title: content.slice(0, 50) + (content.length > 50 ? '...' : ''),
             updated_at: new Date().toISOString()
           })
-          .eq('id', chatId);
+          .eq('id', sessionId);
 
         return { userMessage, aiMessage };
       } catch (error) {
         console.error('AI response error:', error);
-        return {
-          userMessage,
-          aiMessage: {
-            id: 'error',
-            chat_id: chatId,
+
+        // Save error message as AI response
+        const { data: aiMessage } = await supabase
+          .from('messages')
+          .insert({
+            chat_id: sessionId,
             content:
-              "I'm sorry, I'm having trouble right now. Please try again later.",
+              "I apologize, but I'm having trouble accessing the relevant information right now. Please try asking your question again, or rephrase it differently.",
             role: 'assistant',
             created_at: new Date().toISOString()
-          }
-        };
+          })
+          .select()
+          .single();
+
+        return { userMessage, aiMessage };
       }
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error('Error in sendMessage:', error);
       throw error;
     }
   }

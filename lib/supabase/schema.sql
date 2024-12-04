@@ -363,3 +363,42 @@ CREATE TRIGGER update_articles_updated_at
     BEFORE UPDATE ON articles
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
+
+-- First, enable the vector extension
+CREATE EXTENSION IF NOT EXISTS vector;
+
+-- Then create the documents table
+CREATE TABLE IF NOT EXISTS public.documents (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    content TEXT NOT NULL,
+    metadata JSONB DEFAULT '{}'::jsonb,
+    embedding vector(1536),  -- For OpenAI embeddings
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable Row Level Security
+ALTER TABLE public.documents ENABLE ROW LEVEL SECURITY;
+
+-- Create policy for admin access
+CREATE POLICY "Admins can manage documents" ON public.documents
+    FOR ALL USING (
+        EXISTS (
+            SELECT 1 FROM users 
+            WHERE id = auth.uid() AND role = 'admin'
+        )
+    );
+
+-- Create index for faster similarity searches
+CREATE INDEX IF NOT EXISTS documents_embedding_idx ON documents 
+    USING ivfflat (embedding vector_cosine_ops)
+    WITH (lists = 100);
+
+-- Add trigger for updated_at
+CREATE TRIGGER update_documents_updated_at
+    BEFORE UPDATE ON documents
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Add realtime
+ALTER PUBLICATION supabase_realtime ADD TABLE documents;

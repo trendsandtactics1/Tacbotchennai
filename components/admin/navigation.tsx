@@ -11,7 +11,9 @@ import {
   Globe,
   Menu,
   X,
-  AlertTriangle
+  AlertTriangle,
+  FileQuestion,
+  Newspaper
 } from 'lucide-react';
 import { useState } from 'react';
 import { Logo } from '../logo';
@@ -30,7 +32,12 @@ const navigation = [
   {
     name: 'Enquiries',
     href: '/admin/enquiries',
-    icon: AlertTriangle
+    icon: FileQuestion
+  },
+  {
+    name: 'Articles',
+    href: '/admin/articles',
+    icon: Newspaper
   },
   {
     name: 'Announcements',
@@ -38,13 +45,8 @@ const navigation = [
     icon: Bell
   },
   {
-    name: 'Articles',
-    href: '/admin/articles',
-    icon: FileText
-  },
-  {
     name: 'Website Content',
-    href: '/admin/website-content',
+    href: '/admin/website',
     icon: Globe
   }
 ];
