@@ -72,3 +72,34 @@ export interface EnquiryMessage {
   sender_type: 'user' | 'admin';
   created_at: string;
 }
+
+export interface Announcement {
+  id: string;
+  title: string;
+  description: string;
+  image_url?: string;
+  link?: string;
+  status: 'draft' | 'published' | 'archived';
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateAnnouncementData {
+  title: string;
+  description: string;
+  image_url?: string;
+  link?: string;
+  status: 'draft' | 'published' | 'archived';
+}
+
+export interface Article {
+  id: string;
+  title: string;
+  description: string;
+  content: string;
+  image_url?: string;
+  youtube_url?: string;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+}

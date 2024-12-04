@@ -1,4 +1,5 @@
 import { supabase } from '../supabase/client';
+import type { EnquiryMessage } from '@/types/enquiry';
 
 export class EnquiryService {
   static async createEnquiry(userId: string, subject: string, message: string) {
@@ -56,17 +57,15 @@ export class EnquiryService {
     try {
       const { data, error } = await supabase
         .from('enquiries')
-        .select(
-          `
+        .select(`
           *,
-          enquiry_messages!fk_enquiry (
+          enquiry_messages!enquiry_messages_enquiry_id_fkey (
             id,
             content,
             sender_type,
             created_at
           )
-        `
-        )
+        `)
         .eq('user_id', userId)
         .order('updated_at', { ascending: false });
 
@@ -74,8 +73,7 @@ export class EnquiryService {
 
       return data.map((enquiry) => ({
         ...enquiry,
-        lastMessage:
-          enquiry.enquiry_messages[enquiry.enquiry_messages.length - 1] || null
+        lastMessage: enquiry.enquiry_messages[enquiry.enquiry_messages.length - 1] || null
       }));
     } catch (error) {
       console.error('Error fetching enquiries:', error);
@@ -103,12 +101,12 @@ export class EnquiryService {
     enquiryId: string,
     content: string,
     sender_type: 'user' | 'admin'
-  ) {
+  ): Promise<EnquiryMessage> {
     try {
       const timestamp = new Date().toISOString();
-      
+
       // Insert the message
-      const { data, error } = await supabase
+      const { data: message, error: messageError } = await supabase
         .from('enquiry_messages')
         .insert([
           {
@@ -121,21 +119,22 @@ export class EnquiryService {
         .select()
         .single();
 
-      if (error) throw error;
+      if (messageError) throw messageError;
 
-      // Manually update enquiry status if needed
-      if (sender_type === 'admin') {
-        await supabase
+      // When user sends a message, set status to pending
+      if (sender_type === 'user') {
+        const { error: statusError } = await supabase
           .from('enquiries')
           .update({ 
-            status: 'active',
+            status: 'pending',
             updated_at: timestamp 
           })
-          .eq('id', enquiryId)
-          .eq('status', 'pending');
+          .eq('id', enquiryId);
+
+        if (statusError) throw statusError;
       }
 
-      return data;
+      return message;
     } catch (error) {
       console.error('Error sending message:', error);
       throw error;

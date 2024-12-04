@@ -5,23 +5,45 @@ import { generateAIResponse } from '../openai/service';
 export class ChatService {
   static async createUser(name: string, mobile: string) {
     try {
+      // First check if user exists
       const { data: existingUser, error: searchError } = await supabase
         .from('users')
-        .select()
+        .select('*')
         .eq('mobile', mobile)
         .single();
+
+      if (searchError && searchError.code !== 'PGRST116') {
+        throw searchError;
+      }
 
       if (existingUser) {
         return existingUser;
       }
 
+      // Create new user if doesn't exist
       const { data, error } = await supabase
         .from('users')
-        .insert([{ name, mobile }])
+        .insert([
+          { 
+            name, 
+            mobile,
+            role: 'user',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }
+        ])
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      if (!data) {
+        throw new Error('Failed to create user');
+      }
+
       return data;
     } catch (error) {
       console.error('Error creating user:', error);

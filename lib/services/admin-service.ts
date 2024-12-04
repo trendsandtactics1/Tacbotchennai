@@ -6,7 +6,10 @@ import type {
   RecentChat,
   RecentEnquiry,
   AdminEnquiry,
-  EnquiryMessage
+  EnquiryMessage,
+  Announcement,
+  CreateAnnouncementData,
+  Article
 } from '@/types/admin';
 
 export class AdminService {
@@ -231,6 +234,9 @@ export class AdminService {
     content: string
   ): Promise<void> {
     try {
+      const timestamp = new Date().toISOString();
+
+      // Insert the message
       const { error: messageError } = await supabase
         .from('enquiry_messages')
         .insert([
@@ -238,22 +244,233 @@ export class AdminService {
             enquiry_id: enquiryId,
             content,
             sender_type: 'admin',
-            created_at: new Date().toISOString()
+            created_at: timestamp
           }
         ]);
 
       if (messageError) throw messageError;
 
-      // Update enquiry status to active if it was pending
+      // When admin replies, always set status to resolved
       const { error: statusError } = await supabase
         .from('enquiries')
-        .update({ status: 'active', updated_at: new Date().toISOString() })
-        .eq('id', enquiryId)
-        .eq('status', 'pending');
+        .update({ 
+          status: 'resolved', 
+          updated_at: timestamp 
+        })
+        .eq('id', enquiryId);
 
       if (statusError) throw statusError;
     } catch (error) {
       console.error('Error sending enquiry message:', error);
+      throw error;
+    }
+  }
+
+  static async getEnquiryById(enquiryId: string): Promise<AdminEnquiry> {
+    try {
+      const { data, error } = await supabase
+        .from('enquiries')
+        .select(`
+          *,
+          users!enquiries_user_id_fkey (
+            name,
+            mobile
+          ),
+          enquiry_messages (
+            id,
+            content,
+            sender_type,
+            created_at
+          )
+        `)
+        .eq('id', enquiryId)
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error fetching enquiry:', error);
+      throw error;
+    }
+  }
+
+  static async updateEnquiryStatus(
+    enquiryId: string,
+    status: 'pending' | 'active' | 'resolved'
+  ): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('enquiries')
+        .update({ 
+          status,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', enquiryId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error updating enquiry status:', error);
+      throw error;
+    }
+  }
+
+  static async getAnnouncements(): Promise<Announcement[]> {
+    try {
+      const { data, error } = await supabase
+        .from('announcements')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error fetching announcements:', error);
+      throw error;
+    }
+  }
+
+  static async createAnnouncement(data: CreateAnnouncementData): Promise<Announcement> {
+    try {
+      const timestamp = new Date().toISOString();
+      
+      const { data: announcement, error } = await supabase
+        .from('announcements')
+        .insert([
+          {
+            title: data.title,
+            description: data.description,
+            image_url: data.image_url || null,
+            link: data.link || null,
+            status: data.status || 'draft',
+            created_at: timestamp,
+            updated_at: timestamp
+          }
+        ])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return announcement;
+    } catch (error) {
+      console.error('Error creating announcement:', error);
+      throw error;
+    }
+  }
+
+  static async updateAnnouncement(
+    id: string,
+    updates: Partial<Announcement>
+  ): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('announcements')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error updating announcement:', error);
+      throw error;
+    }
+  }
+
+  static async deleteAnnouncement(id: string): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('announcements')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error deleting announcement:', error);
+      throw error;
+    }
+  }
+
+  static async getArticles(): Promise<Article[]> {
+    try {
+      const { data, error } = await supabase
+        .from('articles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error fetching articles:', error);
+      throw error;
+    }
+  }
+
+  static async createArticle(data: {
+    title: string;
+    description: string;
+    content: string;
+    image_url?: string;
+    youtube_url?: string;
+    active: boolean;
+  }): Promise<Article> {
+    try {
+      console.log('Creating article with data:', data);
+      const timestamp = new Date().toISOString();
+      
+      const { data: article, error } = await supabase
+        .from('articles')
+        .insert([
+          {
+            ...data,
+            created_at: timestamp,
+            updated_at: timestamp
+          }
+        ])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+      return article;
+    } catch (error) {
+      console.error('Error creating article:', error);
+      throw error;
+    }
+  }
+
+  static async updateArticle(
+    id: string,
+    data: Partial<Article>
+  ): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('articles')
+        .update({
+          ...data,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error updating article:', error);
+      throw error;
+    }
+  }
+
+  static async deleteArticle(id: string): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('articles')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error deleting article:', error);
       throw error;
     }
   }
