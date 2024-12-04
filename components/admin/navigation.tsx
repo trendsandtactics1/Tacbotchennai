@@ -13,7 +13,8 @@ import {
   X,
   AlertTriangle,
   FileQuestion,
-  Newspaper
+  Newspaper,
+  MessagesSquare
 } from 'lucide-react';
 import { useState } from 'react';
 import { Logo } from '../logo';
@@ -32,7 +33,7 @@ const navigation = [
   {
     name: 'Enquiries',
     href: '/admin/enquiries',
-    icon: FileQuestion
+    icon: MessagesSquare
   },
   {
     name: 'Articles',
@@ -81,7 +82,7 @@ export function AdminNavigation() {
             <Logo />
           </div>
 
-          <nav className='flex-1 px-4 py-4 space-y-1'>
+          <nav className='flex-1 px-4 py-4 space-y-6'>
             {navigation.map((item) => (
               <Link
                 key={item.name}
@@ -89,7 +90,7 @@ export function AdminNavigation() {
                 className={cn(
                   'flex items-center px-4 py-2 text-sm font-medium rounded-md',
                   pathname === item.href
-                    ? 'bg-gray-100 text-gray-900'
+                    ? 'bg-rose-50 text-rose-900'
                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                 )}
               >

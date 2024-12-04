@@ -6,8 +6,10 @@ export default function SignInPage() {
     <div className='flex flex-col items-center justify-center min-h-screen p-4'>
       <div className='w-full max-w-md space-y-8'>
         <div className='flex flex-col items-center'>
-          <Logo className='h-12 w-12' />
-          <h2 className='mt-6 text-3xl font-bold'>Sign in to Admin Panel</h2>
+          <Logo className='flex-1 text-rose-600' />
+          <h2 className='mt-6 text-2xl font-semibold'>
+            Sign in to Admin Panel
+          </h2>
           <p className='mt-2 text-gray-600'>
             Enter your credentials to access the admin panel
           </p>

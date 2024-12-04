@@ -550,18 +550,18 @@ export function EnquiryTab() {
       </div>
 
       {/* Message Input */}
-      <div className='p-4 bg-white border-t'>
+      <div className='p-2 sm:p-4 bg-white border-t'>
         <form
           onSubmit={(e) => {
             e.preventDefault();
             handleSendMessage();
           }}
-          className='flex gap-2'
+          className='flex gap-2 max-w-full'
         >
           <input
             type='text'
             placeholder='Type your message...'
-            className='flex-1 p-3 bg-gray-50 border rounded-full focus:ring-2 focus:ring-blue-500 focus:outline-none'
+            className='w-full px-4 py-3 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent'
             value={currentMessage}
             onChange={(e) => setCurrentMessage(e.target.value)}
             disabled={isSending}
@@ -569,7 +569,7 @@ export function EnquiryTab() {
           <button
             type='submit'
             disabled={!currentMessage.trim() || isSending}
-            className='bg-blue-500 text-white p-3 rounded-full hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:hover:bg-blue-500'
+            className='shrink-0 bg-rose-500 text-white p-2 rounded-full hover:bg-rose-600 transition-colors'
           >
             {isSending ? (
               <Loader2 size={20} className='animate-spin' />

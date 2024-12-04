@@ -31,7 +31,10 @@ const formatAIResponse = (content: string): AIResponseSection[] => {
     if (section.includes('•')) {
       return {
         type: 'list',
-        content: section.split('•').filter(Boolean).map(item => item.trim())
+        content: section
+          .split('•')
+          .filter(Boolean)
+          .map((item) => item.trim())
       };
     }
     return {
@@ -383,8 +386,8 @@ export function MessageTab() {
               >
                 {/* Bot Icon - Only show for bot messages */}
                 {message.type === 'bot' && (
-                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-                    <Bot size={20} className="text-gray-600" />
+                  <div className='w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0'>
+                    <Bot size={20} className='text-gray-600' />
                   </div>
                 )}
 
@@ -397,41 +400,55 @@ export function MessageTab() {
                   }`}
                 >
                   {message.type === 'user' ? (
-                    <p className="text-sm leading-relaxed">{message.content}</p>
+                    <p className='text-sm leading-relaxed'>{message.content}</p>
                   ) : (
-                    <div className="space-y-5">
-                      {formatAIResponse(message.content).map((section: AIResponseSection, idx: number) => (
-                        <div key={idx}>
-                          {section.type === 'list' ? (
-                            <ul className="space-y-3">
-                              {(section.content as string[]).map((item: string, itemIdx: number) => (
-                                <li key={itemIdx} className="flex items-start gap-3">
-                                  <span className="text-rose-500 mt-1">•</span>
-                                  <span className="text-sm leading-relaxed tracking-wide">
-                                    {item}
-                                  </span>
-                                </li>
-                              ))}
-                            </ul>
-                          ) : (
-                            <p className="text-sm leading-7 tracking-wide">
-                              {(section.content as string).split('\n').map((line: string, i: number) => (
-                                <span key={i} className="block mb-2 last:mb-0">
-                                  {line || <br />}
-                                </span>
-                              ))}
-                            </p>
-                          )}
-                        </div>
-                      ))}
+                    <div className='space-y-5'>
+                      {formatAIResponse(message.content).map(
+                        (section: AIResponseSection, idx: number) => (
+                          <div key={idx}>
+                            {section.type === 'list' ? (
+                              <ul className='space-y-3'>
+                                {(section.content as string[]).map(
+                                  (item: string, itemIdx: number) => (
+                                    <li
+                                      key={itemIdx}
+                                      className='flex items-start gap-3'
+                                    >
+                                      <span className='text-rose-500 mt-1'>
+                                        •
+                                      </span>
+                                      <span className='text-sm leading-relaxed tracking-wide'>
+                                        {item}
+                                      </span>
+                                    </li>
+                                  )
+                                )}
+                              </ul>
+                            ) : (
+                              <p className='text-sm leading-7 tracking-wide'>
+                                {(section.content as string)
+                                  .split('\n')
+                                  .map((line: string, i: number) => (
+                                    <span
+                                      key={i}
+                                      className='block mb-2 last:mb-0'
+                                    >
+                                      {line || <br />}
+                                    </span>
+                                  ))}
+                              </p>
+                            )}
+                          </div>
+                        )
+                      )}
                     </div>
                   )}
                 </div>
 
                 {/* User Icon - Only show for user messages */}
                 {message.type === 'user' && (
-                  <div className="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center flex-shrink-0">
-                    <User size={20} className="text-rose-500" />
+                  <div className='w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center flex-shrink-0'>
+                    <User size={20} className='text-rose-500' />
                   </div>
                 )}
               </div>
@@ -440,8 +457,8 @@ export function MessageTab() {
             {/* Loading indicator for sending message */}
             {isSending && (
               <div className='flex items-start gap-3'>
-                <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
-                  <Bot size={20} className="text-gray-600" />
+                <div className='w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center'>
+                  <Bot size={20} className='text-gray-600' />
                 </div>
                 <div className='bg-gray-100 rounded-2xl px-4 py-2.5'>
                   <Loader2 className='w-5 h-5 animate-spin text-gray-500' />

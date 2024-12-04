@@ -23,7 +23,7 @@ export function AdminHeader() {
   return (
     <header className='bg-white shadow'>
       <div className='h-16 flex items-center justify-between px-6'>
-        <h1 className='text-2xl font-semibold text-gray-900'>Admin Panel</h1>
+        <h1 className='text-lg font-medium text-gray-900'>Admin Panel</h1>
 
         <div className='flex items-center gap-4'>
           <div className='flex items-center gap-2'>
