@@ -22,7 +22,7 @@ import { MessageTab } from './tabs/message-tab';
 import { EnquiryTab } from './tabs/enquiry-tab';
 import { AnnouncementTab } from './tabs/announcement-tab';
 import { ArticleTab } from './tabs/article-tab';
-import { useWidget, WidgetProvider } from '@/contexts/widget-context';
+import { useWidget } from '@/contexts/widget-context';
 import { Maximize2, Minimize2 } from 'lucide-react';
 
 const tabs = [
@@ -34,11 +34,7 @@ const tabs = [
 ];
 
 export function ChatWidget() {
-  return (
-    <WidgetProvider>
-      <ChatWidgetContent />
-    </WidgetProvider>
-  );
+  return <ChatWidgetContent />;
 }
 
 function ChatWidgetContent() {
@@ -46,7 +42,8 @@ function ChatWidgetContent() {
   const [activeTab, setActiveTab] = useState('home');
   const isMobile = useIsMobile();
   const widgetRef = useRef<HTMLDivElement>(null);
-  const { isExpanded, setIsExpanded } = useWidget();
+  const { setIsExpanded } = useWidget();
+  const [isExpanded, setIsExpandedState] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -118,19 +115,46 @@ function ChatWidgetContent() {
       rounded-lg`;
   };
 
+  const handleExpand = (expanded: boolean) => {
+    setIsExpandedState(expanded);
+    setIsExpanded(expanded);
+  };
+
+  // Add effect to handle tab changes
+  useEffect(() => {
+    if (activeTab !== 'articles') {
+      handleExpand(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
+
+  // Update tab switching
+  const handleTabChange = (tabId: string) => {
+    setActiveTab(tabId);
+    if (tabId !== 'articles') {
+      handleExpand(false);
+    }
+  };
+
   return (
     <div className='z-50' ref={widgetRef}>
       {/* Main Floating Button */}
       <div
-        className={`fixed bottom-4 right-6 ${
+        className={`fixed bottom-4 right-4 ${
           isMobile && isWidgetOpen ? 'hidden' : 'block'
         }`}
       >
         <button
           onClick={toggleWidget}
-          className='h-12 w-12 rounded-full bg-black text-white shadow-lg flex items-center justify-center hover:opacity-90 transition-all duration-300'
+          className='w-full h-full flex items-center justify-center hover:scale-120 transition-all duration-300'
         >
-          <MessageCircle size={24} />
+          <Image
+            src='/boy.gif'
+            alt='Chat Icon'
+            width={100}
+            height={100}
+            className='object-cover'
+          />
         </button>
       </div>
 
@@ -152,7 +176,7 @@ function ChatWidgetContent() {
             <div className='flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide scroll-smooth'>
               {activeTab === 'home' && (
                 <HomeTab
-                  onChatClick={() => setActiveTab('message')}
+                  onChatClick={() => setActiveTab('home')}
                   onClose={() => setIsWidgetOpen(false)}
                 />
               )}
@@ -161,7 +185,7 @@ function ChatWidgetContent() {
               {activeTab === 'info' && <AnnouncementTab />}
               {activeTab === 'articles' && (
                 <div className='h-full'>
-                  <ArticleTab />
+                  <ArticleTab onExpand={handleExpand} />
                 </div>
               )}
             </div>
@@ -171,7 +195,7 @@ function ChatWidgetContent() {
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => handleTabChange(tab.id)}
                   className={`flex flex-col items-center p-2 rounded-lg transition-colors ${
                     activeTab === tab.id
                       ? 'text-rose-600 bg-rose-50'

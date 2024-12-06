@@ -250,8 +250,10 @@ export function MessageTab() {
                   onClick={() => loadChatMessages(chat.id)}
                   className='p-4 rounded-lg border hover:bg-gray-50 cursor-pointer transition-colors'
                 >
-                  <div className='flex justify-between items-start'>
-                    <h3 className='font-medium text-gray-900'>{chat.title}</h3>
+                  <div className='flex justify-between gap-6 items-start'>
+                    <h3 className='font-sm text-gray-900 truncate'>
+                      {chat.title}
+                    </h3>
                     <span className='text-xs text-gray-500'>
                       {chat.timestamp}
                     </span>

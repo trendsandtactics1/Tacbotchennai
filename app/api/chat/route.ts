@@ -91,9 +91,12 @@ Instructions:
   } catch (error: Error | ChatError | unknown) {
     console.error('Error in chat API:', error);
     return NextResponse.json(
-      { 
-        error: error instanceof Error ? error.message : 'Failed to generate response',
-        success: false 
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to generate response',
+        success: false
       },
       { status: 500 }
     );

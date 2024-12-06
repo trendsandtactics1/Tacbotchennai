@@ -9,29 +9,28 @@ import Image from 'next/image';
 import { useWidget } from '@/contexts/widget-context';
 import ReactMarkdown from 'react-markdown';
 
-export function ArticleTab() {
+interface ArticleTabProps {
+  onExpand: (expanded: boolean) => void;
+}
+
+export function ArticleTab({ onExpand }: ArticleTabProps) {
   const [articles, setArticles] = useState<Article[]>([]);
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { isExpanded, setIsExpanded } = useWidget();
+  const { setIsExpanded } = useWidget();
 
   useEffect(() => {
     loadArticles();
   }, []);
 
   useEffect(() => {
-    return () => {
-      setSelectedArticle(null);
-      setIsExpanded(false);
-    };
-  }, [setIsExpanded]);
-
-  useEffect(() => {
     if (selectedArticle) {
-      setIsExpanded(true);
+      onExpand(true);
+    } else {
+      onExpand(false);
     }
-  }, [selectedArticle, setIsExpanded]);
+  }, [selectedArticle, onExpand]);
 
   const loadArticles = async () => {
     try {
@@ -52,13 +51,14 @@ export function ArticleTab() {
 
   const getYoutubeEmbedUrl = (url: string) => {
     try {
-      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+      const regExp =
+        /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
       const match = url.match(regExp);
-      
+
       if (match && match[2].length === 11) {
         return `https://www.youtube.com/embed/${match[2]}`;
       }
-      
+
       return url;
     } catch (error) {
       console.error('Error parsing YouTube URL:', error);
@@ -91,7 +91,7 @@ export function ArticleTab() {
             <button
               onClick={() => {
                 setSelectedArticle(null);
-                setIsExpanded(false);
+                onExpand(false);
               }}
               className='hover:opacity-70 transition-opacity'
             >
@@ -101,7 +101,7 @@ export function ArticleTab() {
           </div>
         </div>
         <div className='flex-1 overflow-y-auto'>
-          <article className='prose prose-sm md:prose-base lg:prose-lg max-w-none p-4'>
+          <article className='max-w-none p-4'>
             {selectedArticle.image_url && (
               <div className='relative w-full h-64 mb-6 rounded-lg overflow-hidden'>
                 <Image
@@ -112,10 +112,10 @@ export function ArticleTab() {
                 />
               </div>
             )}
-            <h1 className='text-2xl font-semibold text-gray-900 mb-4'>
+            <h1 className='text-black text-2xl font-semibold mb-4'>
               {selectedArticle.title}
             </h1>
-            <div 
+            <div
               className='prose prose-sm md:prose-base lg:prose-lg max-w-none'
               dangerouslySetInnerHTML={{ __html: selectedArticle.content }}
             />
@@ -124,11 +124,11 @@ export function ArticleTab() {
                 <h3 className='text-lg font-semibold mb-4'>Related Video</h3>
                 <iframe
                   src={getYoutubeEmbedUrl(selectedArticle.youtube_url)}
-                  title="YouTube video player"
+                  title='YouTube video player'
                   className='w-full h-full rounded-lg'
                   allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
                   allowFullScreen
-                  frameBorder="0"
+                  frameBorder='0'
                 />
               </div>
             )}
@@ -172,7 +172,9 @@ export function ArticleTab() {
                   </div>
                 )}
                 <div className='flex-1 min-w-0'>
-                  <h3 className='font-medium text-gray-900'>{article.title}</h3>
+                  <h3 className='font-medium text-base text-gray-900'>
+                    {article.title}
+                  </h3>
                   <p className='text-sm text-gray-600 mt-1 line-clamp-2'>
                     {article.description}
                   </p>

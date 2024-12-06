@@ -137,12 +137,12 @@ export default {
             a: {
               color: 'inherit',
               textDecoration: 'none',
-              fontWeight: '500',
-            },
+              fontWeight: '500'
+            }
             // Add any other typography customizations here
-          },
-        },
-      },
+          }
+        }
+      }
     }
   },
   plugins: [animate, typography]
