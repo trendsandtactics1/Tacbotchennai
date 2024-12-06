@@ -23,26 +23,38 @@
 
   // Default (compact) styles
   let isExpanded = false;
+  let isWidgetOpen = false;
 
   const setWidgetSize = (expanded) => {
     iframe.style.width = expanded ? '700px' : '400px';
     iframe.style.height = expanded ? '600px' : '600px';
   };
 
+  const updateWidgetStyles = () => {
+    iframe.style.cssText = `
+      border: none;
+      border-radius: 10px;
+      background: white;
+      transition: all 0.3s ease;
+      width: ${isExpanded ? '700px' : '400px'};
+      height: ${isExpanded ? '600px' : '600px'};
+      ${isWidgetOpen ? 'box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);' : ''}
+    `;
+  };
+
   setWidgetSize(isExpanded);
+  updateWidgetStyles();
 
-  iframe.style.cssText += `
-    border: none;
-    border-radius: 10px;
-    background: white;
-    transition: all 0.3s ease;
-  `;
-
-  // Listen for expansion messages from iframe
+  // Listen for messages from iframe
   window.addEventListener('message', (event) => {
     if (event.data.type === 'widget-resize') {
       isExpanded = event.data.expanded;
       setWidgetSize(isExpanded);
+      updateWidgetStyles();
+    }
+    if (event.data.type === 'widget-toggle') {
+      isWidgetOpen = event.data.open;
+      updateWidgetStyles();
     }
   });
 

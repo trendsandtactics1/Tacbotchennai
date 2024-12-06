@@ -60,7 +60,27 @@ function ChatWidgetContent() {
   }, []);
 
   const toggleWidget = () => {
-    setIsWidgetOpen(!isWidgetOpen);
+    const newState = !isWidgetOpen;
+    setIsWidgetOpen(newState);
+    
+    // Send message to parent window
+    if (typeof window !== 'undefined') {
+      window.parent.postMessage({ 
+        type: 'widget-toggle', 
+        open: newState 
+      }, '*');
+    }
+  };
+
+  const closeWidget = () => {
+    setIsWidgetOpen(false);
+    // Send message to parent window
+    if (typeof window !== 'undefined') {
+      window.parent.postMessage({ 
+        type: 'widget-toggle', 
+        open: false 
+      }, '*');
+    }
   };
 
   const renderHeader = () => {
@@ -84,7 +104,7 @@ function ChatWidgetContent() {
           </div>
         </div>
         <button
-          onClick={() => setIsWidgetOpen(false)}
+          onClick={closeWidget}
           className='text-white hover:opacity-75'
         >
           <X size={20} className='text-gray-600' />
@@ -176,8 +196,8 @@ function ChatWidgetContent() {
             <div className='flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide scroll-smooth'>
               {activeTab === 'home' && (
                 <HomeTab
-                  onChatClick={() => setActiveTab('home')}
-                  onClose={() => setIsWidgetOpen(false)}
+                  onChatClick={() => setActiveTab('message')}
+                  onClose={closeWidget}
                 />
               )}
               {activeTab === 'message' && <MessageTab />}
