@@ -72,7 +72,7 @@ Instructions:
         }
       ],
       temperature: 0.7,
-      max_tokens: 500
+      max_tokens: 400
     });
 
     console.log('Received OpenAI response');
