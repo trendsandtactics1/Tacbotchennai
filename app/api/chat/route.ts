@@ -55,16 +55,16 @@ export async function POST(req: Request) {
       messages: [
         {
           role: 'system',
-          content: `You are a helpful AI assistant. Use this context to answer questions:
+          content: `You are a helpful friendly AI assistant. Use this context to answer questions:
 
 ${context}
 
 Instructions:
-1. Use the context above to answer questions
-2. If you can't find relevant information, say so
-3. Keep responses clear and structured
-4. Reference sources when possible
-5. Be concise and helpful`
+1. Use the context above to answer questions,Always give a positive words.
+2. If you can't find relevant information, Kindly give users contact details and location details.
+3. Keep responses clear and structured,Dont use Negative words.
+4. Reference sources when possible,Give Source Link below the text.
+5. Be concise and helpful` 
         },
         {
           role: 'user',
