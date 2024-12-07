@@ -68,10 +68,10 @@ export function HomeTab({ onChatClick, onClose }: HomeTabProps) {
               className='h-20 w-20 rounded-full object-cover'
             />
             <div>
-              <h1 className='text-2xl font-semibold mb-2 text-white'>
+              <h1 className='text-[32px] font-semibold mb-2 text-white'>
                 Hello there.
               </h1>
-              <h2 className='text-3xl font-semibold text-white'>
+              <h2 className='text-[24px] font-semibold text-white'>
                 How can we help?
               </h2>
             </div>
@@ -88,7 +88,7 @@ export function HomeTab({ onChatClick, onClose }: HomeTabProps) {
 
       {/* Recent Announcements */}
       <div className='space-y-4'>
-        <h3 className='font-semibold text-gray-800 px-1'>
+        <h3 className='font-semibold text-[14px] text-gray-800 px-1'>
           Recent Announcements
         </h3>
         {isLoading ? (
@@ -108,7 +108,7 @@ export function HomeTab({ onChatClick, onClose }: HomeTabProps) {
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 {announcement.image_url && (
-                  <div className='relative w-full h-40 mb-3 rounded-lg overflow-hidden'>
+                  <div className='relative w-full h-80 mb-3 rounded-lg overflow-hidden'>
                     <Image
                       src={announcement.image_url}
                       alt={announcement.title}
@@ -123,10 +123,10 @@ export function HomeTab({ onChatClick, onClose }: HomeTabProps) {
                   </div>
                 )}
                 <div className='space-y-2'>
-                  <h4 className='font-medium text-gray-800'>
+                  <h4 className='font-medium text-[14px] leading-6 text-gray-800'>
                     {announcement.title}
                   </h4>
-                  <p className='text-sm text-gray-600'>
+                  <p className='text-sm text-gray-600 text-[13px] leading-6'>
                     {announcement.description}
                   </p>
                   {announcement.link && (
@@ -151,7 +151,7 @@ export function HomeTab({ onChatClick, onClose }: HomeTabProps) {
 
       {/* FAQ Section */}
       <div className='space-y-4'>
-        <h3 className='font-semibold text-gray-800 px-1'>
+        <h3 className='font-semibold text-[14px] text-gray-800 px-1'>
           Frequently Asked Questions
         </h3>
         <Accordion.Root type='single' collapsible className='space-y-2'>
@@ -163,13 +163,13 @@ export function HomeTab({ onChatClick, onClose }: HomeTabProps) {
               style={{ animationDelay: `${index * 100}ms` }}
             >
               <Accordion.Trigger className='flex items-center justify-between w-full p-4 text-left hover:bg-gray-50 transition-colors'>
-                <span className='font-medium text-gray-800'>
+                <span className='font-medium text-gray-600 text-[14px] leading-6'>
                   {faq.question}
                 </span>
                 <ChevronDown className='h-4 w-4 text-gray-500 transition-transform duration-300 ease-[cubic-bezier(0.87,0,0.13,1)] group-data-[state=open]:rotate-180' />
               </Accordion.Trigger>
               <Accordion.Content className='overflow-hidden data-[state=open]:animate-slideDown data-[state=closed]:animate-slideUp'>
-                <div className='p-4 pt-0 text-sm text-gray-600'>
+                <div className='p-4 pt-0 text-sm text-gray-600 text-[13px] leading-6'>
                   {faq.answer}
                 </div>
               </Accordion.Content>

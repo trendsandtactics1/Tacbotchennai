@@ -366,10 +366,10 @@ export function EnquiryTab() {
                 className='p-4 rounded-lg border hover:bg-gray-50 cursor-pointer transition-colors'
               >
                 <div className='flex justify-between gap-6 items-start'>
-                  <h3 className='font-sm text-gray-900 truncate'>
+                  <h3 className='font-medium text-[14px] leading-6 text-gray-900 truncate'>
                     {enquiry.subject}
                   </h3>
-                  <span className='text-xs text-gray-500'>
+                  <span className='text-xs text-gray-500 text-[13px] leading-6'>
                     {new Date(enquiry.created_at).toLocaleString()}
                   </span>
                 </div>

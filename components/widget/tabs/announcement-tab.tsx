@@ -55,7 +55,7 @@ export function AnnouncementTab() {
 
   return (
     <div className='flex flex-col gap-4 p-4'>
-      <h2 className='text-xl font-semibold text-gray-800'>Announcements</h2>
+      <h2 className='text-[16px] font-semibold text-gray-800'>Announcements</h2>
       {announcements.length === 0 ? (
         <div className='flex flex-col items-center justify-center py-8 text-gray-500'>
           <p>No announcements available</p>
@@ -68,7 +68,7 @@ export function AnnouncementTab() {
               className='bg-white rounded-lg border p-4 hover:shadow-md transition-all duration-300'
             >
               {announcement.image_url && (
-                <div className='relative mb-3 rounded-lg overflow-hidden h-48'>
+                <div className='relative mb-3 rounded-lg overflow-hidden h-80'>
                   <Image
                     src={announcement.image_url}
                     alt={announcement.title}
@@ -77,10 +77,10 @@ export function AnnouncementTab() {
                   />
                 </div>
               )}
-              <h3 className='font-medium text-gray-900'>
+              <h3 className='font-medium text-[14px] leading-6 text-gray-900'>
                 {announcement.title}
               </h3>
-              <p className='text-sm text-gray-600 mt-1'>
+              <p className='text-sm text-gray-600 mt-1 text-[13px] leading-6'>
                 {announcement.description}
               </p>
               {announcement.link && (
@@ -93,7 +93,7 @@ export function AnnouncementTab() {
                   Learn more
                 </Link>
               )}
-              <span className='text-xs text-gray-400 mt-2 block'>
+              <span className='text-xs text-gray-400 mt-2 block text-[13px] leading-6'>
                 {new Date(announcement.created_at).toLocaleDateString()}
               </span>
             </div>

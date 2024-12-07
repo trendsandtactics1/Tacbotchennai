@@ -97,7 +97,9 @@ export function ArticleTab({ onExpand }: ArticleTabProps) {
             >
               <ArrowLeft size={20} />
             </button>
-            <h2 className='font-semibold'>Article Details</h2>
+            <h2 className='font-semibold text-[16px] leading-6'>
+              Article Details
+            </h2>
           </div>
         </div>
         <div className='flex-1 overflow-y-auto'>
@@ -144,9 +146,11 @@ export function ArticleTab({ onExpand }: ArticleTabProps) {
 
   return (
     <div className='flex flex-col gap-4 p-4'>
-      <h2 className='text-xl font-semibold text-gray-800'>Articles</h2>
+      <h2 className='text-[16px] font-semibold text-gray-800 leading-6'>
+        Articles
+      </h2>
       {articles.length === 0 ? (
-        <div className='flex flex-col items-center justify-center py-8 text-gray-500'>
+        <div className='flex text-[14px] leading-6 flex-col items-center justify-center py-8 text-gray-500'>
           <p>No articles available</p>
         </div>
       ) : (
@@ -172,10 +176,10 @@ export function ArticleTab({ onExpand }: ArticleTabProps) {
                   </div>
                 )}
                 <div className='flex-1 min-w-0'>
-                  <h3 className='font-medium text-base text-gray-900'>
+                  <h3 className='font-medium text-[14px] leading-6 text-gray-900'>
                     {article.title}
                   </h3>
-                  <p className='text-sm text-gray-600 mt-1 line-clamp-2'>
+                  <p className='text-sm text-gray-600 mt-1 line-clamp-2 text-[13px] leading-6'>
                     {article.description}
                   </p>
                   {article.tags && (

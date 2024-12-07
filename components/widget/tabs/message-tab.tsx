@@ -251,10 +251,10 @@ export function MessageTab() {
                   className='p-4 rounded-lg border hover:bg-gray-50 cursor-pointer transition-colors'
                 >
                   <div className='flex justify-between gap-6 items-start'>
-                    <h3 className='font-sm text-gray-900 truncate'>
+                    <h3 className='font-medium text-[14px] leading-6 text-gray-900 truncate'>
                       {chat.title}
                     </h3>
-                    <span className='text-xs text-gray-500'>
+                    <span className='text-xs text-gray-500 text-[13px] leading-6'>
                       {chat.timestamp}
                     </span>
                   </div>
@@ -402,7 +402,7 @@ export function MessageTab() {
                   }`}
                 >
                   {message.type === 'user' ? (
-                    <p className='text-sm leading-relaxed'>{message.content}</p>
+                    <p className='text-[13px] leading-6'>{message.content}</p>
                   ) : (
                     <div className='space-y-5'>
                       {formatAIResponse(message.content).map(
@@ -419,7 +419,7 @@ export function MessageTab() {
                                       <span className='text-rose-500 mt-1'>
                                         •
                                       </span>
-                                      <span className='text-sm leading-relaxed tracking-wide'>
+                                      <span className='text-[13px] leading-6'>
                                         {item}
                                       </span>
                                     </li>
