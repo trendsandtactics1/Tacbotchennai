@@ -34,7 +34,8 @@
     iframe.style.cssText = `
       border: none;
       border-radius: 10px;
-      background: white;
+      background: transparent;
+      ${isWidgetOpen ? 'box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);' : ''}
       transition: all 0.3s ease;
       width: ${isExpanded ? '700px' : '400px'};
       height: ${isExpanded ? '600px' : '600px'};
