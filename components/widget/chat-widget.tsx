@@ -12,7 +12,8 @@ import {
   MessageCircleHeart,
   Send,
   Newspaper,
-  Mic
+  Mic,
+  MessageSquare
 } from 'lucide-react';
 import { HomeTab } from './tabs/home-tab';
 import Image from 'next/image';
@@ -62,13 +63,16 @@ function ChatWidgetContent() {
   const toggleWidget = () => {
     const newState = !isWidgetOpen;
     setIsWidgetOpen(newState);
-    
+
     // Send message to parent window
     if (typeof window !== 'undefined') {
-      window.parent.postMessage({ 
-        type: 'widget-toggle', 
-        open: newState 
-      }, '*');
+      window.parent.postMessage(
+        {
+          type: 'widget-toggle',
+          open: newState
+        },
+        '*'
+      );
     }
   };
 
@@ -76,10 +80,13 @@ function ChatWidgetContent() {
     setIsWidgetOpen(false);
     // Send message to parent window
     if (typeof window !== 'undefined') {
-      window.parent.postMessage({ 
-        type: 'widget-toggle', 
-        open: false 
-      }, '*');
+      window.parent.postMessage(
+        {
+          type: 'widget-toggle',
+          open: false
+        },
+        '*'
+      );
     }
   };
 
@@ -103,10 +110,7 @@ function ChatWidgetContent() {
             <p className='text-sm opacity-90'>Answer Instantly</p>
           </div>
         </div>
-        <button
-          onClick={closeWidget}
-          className='text-white hover:opacity-75'
-        >
+        <button onClick={closeWidget} className='text-white hover:opacity-75'>
           <X size={20} className='text-gray-600' />
         </button>
       </div>
@@ -168,12 +172,9 @@ function ChatWidgetContent() {
           onClick={toggleWidget}
           className='w-full h-full flex items-center justify-center hover:scale-120 transition-all duration-300'
         >
-          <Image
-            src='/boy.gif'
-            alt='Chat Icon'
-            width={100}
-            height={100}
-            className='object-cover'
+          <MessageCircle
+            size={20}
+            className='text-white bg-black h-12 w-12 rounded-full p-3'
           />
         </button>
       </div>
