@@ -15,45 +15,59 @@ const openai = new OpenAI({
 
 export async function POST(req: Request) {
   try {
-    const { message } = await req.json();
+    // Validate request body
+    const body = await req.json().catch(() => null);
+    if (!body || !body.message) {
+      return NextResponse.json(
+        { 
+          error: 'Invalid request body', 
+          success: false 
+        },
+        { status: 400 }
+      );
+    }
+
+    const { message } = body;
     console.log('Received message:', message);
 
-    // Get relevant documents - increased limit since GPT-4 Turbo can handle more context
+    // Get documents from Supabase
     const { data: documents, error: dbError } = await supabase
       .from('documents')
       .select('content, metadata')
-      .limit(50); // Increased from 5 to 15 documents
+      .limit(50);
 
     if (dbError) {
       console.error('Database error:', dbError);
-      throw dbError;
+      return NextResponse.json(
+        { 
+          error: 'Database error', 
+          success: false 
+        },
+        { status: 500 }
+      );
     }
-
-    console.log('Found documents:', documents?.length || 0);
 
     if (!documents?.length) {
       return NextResponse.json({
-        response:
-          "I don't have any relevant information to answer your question. Please try asking something else."
+        response: "I don't have any relevant information to answer your question. Please try asking something else.",
+        success: true
       });
     }
 
-    // Format context - increased limits due to larger context window
+    // Format context
     const context = documents
       .map((doc) => {
         const source = doc.metadata?.source_url
           ? `Source: ${doc.metadata.source_url}`
           : '';
-        // Increased per-document limit
         return `${doc.content.substring(0, 4000)}\n${source}`;
       })
       .join('\n\n')
-      .substring(0, 32000); // Increased total context length
+      .substring(0, 32000);
 
-    console.log('Sending request to OpenAI...');
-
+    // Generate OpenAI response
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4-turbo-preview', // Using GPT-4 Turbo with 128k context window
+      model: 'gpt-4-turbo-preview',
       messages: [
         {
           role: 'system',
@@ -74,28 +88,34 @@ Instructions:
         }
       ],
       temperature: 0.7,
-      max_tokens: 500 // Increased response length
+      max_tokens: 500
     });
 
     const aiResponse = completion.choices[0]?.message?.content;
 
     if (!aiResponse) {
-      console.error('No response content from OpenAI');
-      throw new Error('No response generated');
+      return NextResponse.json(
+        { 
+          error: 'No response generated', 
+          success: false 
+        },
+        { status: 500 }
+      );
     }
 
+    // Return successful response
     return NextResponse.json({
       response: aiResponse,
       success: true
     });
-  } catch (error: Error | ChatError | unknown) {
+
+  } catch (error) {
     console.error('Error in chat API:', error);
+    
+    // Ensure error response is always properly formatted JSON
     return NextResponse.json(
       {
-        error:
-          error instanceof Error
-            ? error.message
-            : 'Failed to generate response',
+        error: error instanceof Error ? error.message : 'An unexpected error occurred',
         success: false
       },
       { status: 500 }
