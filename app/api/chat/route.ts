@@ -126,7 +126,7 @@ Instructions:
           }
         ],
         temperature: 0.7,
-        max_tokens: 500
+        max_tokens: 400
       },
       {
         timeout: 45000 // 45 seconds timeout
