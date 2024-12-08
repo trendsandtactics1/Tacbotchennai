@@ -19,7 +19,7 @@
 
   const iframe = document.createElement('iframe');
   const params = new URLSearchParams(config).toString();
-  iframe.src = `http://localhost:3000/widget?${params}`;
+  iframe.src = `https://tacbot.vercel.app/widget?${params}`;
 
   // Default (compact) styles
   let isExpanded = false;
