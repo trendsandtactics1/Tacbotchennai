@@ -18,6 +18,19 @@ const openai = new OpenAI({
   timeout: 60000
 });
 
+function cleanResponse(text: string): string {
+  // Remove source links
+  text = text.replace(/\nSource:.*$/gm, '');
+
+  // Remove URLs
+  text = text.replace(/https?:\/\/[^\s]+/g, '');
+
+  // Clean up any double newlines or spaces that might be left
+  text = text.replace(/\n{3,}/g, '\n\n').trim();
+
+  return text;
+}
+
 export async function POST(req: Request): Promise<Response> {
   try {
     // Add timeout to the entire request
@@ -115,10 +128,11 @@ ${context}
 
 Instructions:
 1. Use the context above to answer questions, Always give a positive words.
-2. If you can't find relevant information.
+2. If you can't find relevant information, provide a general helpful response.
 3. Keep responses clear and structured, Don't use Negative words.
-4. Reference sources when possible, Give Source Link below the text.
-5. Be concise and helpful`
+4. Do not include any URLs or source references in your response.
+5. Be concise and helpful.
+6. Focus on providing information directly without referencing external sources.`
           },
           {
             role: 'user',
@@ -129,7 +143,7 @@ Instructions:
         max_tokens: 400
       },
       {
-        timeout: 45000 // 45 seconds timeout
+        timeout: 45000
       }
     );
 
@@ -145,9 +159,12 @@ Instructions:
       );
     }
 
+    // Clean the response to remove any URLs or source references
+    const cleanedResponse = cleanResponse(aiResponse);
+
     return NextResponse.json(
       {
-        response: aiResponse,
+        response: cleanedResponse,
         success: true
       },
       {

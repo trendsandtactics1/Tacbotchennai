@@ -160,6 +160,20 @@ function ChatWidgetContent() {
     }
   };
 
+  const renderMessage = (content: string, hasHtml: boolean) => {
+    if (hasHtml) {
+      return (
+        <div
+          className='prose prose-blue max-w-none break-words'
+          dangerouslySetInnerHTML={{
+            __html: content.replace(/\]\(|\)/g, '') // Remove any remaining markdown syntax
+          }}
+        />
+      );
+    }
+    return <p className='break-words'>{content}</p>;
+  };
+
   return (
     <div className='z-50' ref={widgetRef}>
       {/* Main Floating Button */}
@@ -172,9 +186,12 @@ function ChatWidgetContent() {
           onClick={toggleWidget}
           className='w-full h-full flex items-center justify-center hover:scale-120 transition-all duration-300'
         >
-          <MessageCircle
-            size={20}
-            className='text-white bg-black h-12 w-12 rounded-full p-3'
+          <Image
+            src='/boy.gif' // Make sure to add your GIF file to the public folder
+            alt='Chat with us'
+            width={100}
+            height={100}
+            className='object-cover'
           />
         </button>
       </div>

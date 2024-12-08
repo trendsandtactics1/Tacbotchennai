@@ -115,3 +115,23 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* Add these styles for clickable links in the chat */
+.prose a {
+  color: #3b82f6 !important; /* blue-500 */
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.prose a:hover {
+  text-decoration: underline;
+  opacity: 0.8;
+}
+
+/* Ensure links break properly */
+.prose {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+}
