@@ -29,7 +29,7 @@ const tabs = [
   { id: 'home', label: 'Home', Icon: Crown },
   { id: 'message', label: 'Message', Icon: Bot },
   { id: 'enquiry', label: 'Enquiry', Icon: Send },
-  { id: 'info', label: 'Announcements', Icon: Mic },
+  { id: 'info', label: 'News', Icon: Mic },
   { id: 'articles', label: 'Articles', Icon: Newspaper }
 ];
 
