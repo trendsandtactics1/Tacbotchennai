@@ -27,9 +27,9 @@ import { Maximize2, Minimize2 } from 'lucide-react';
 
 const tabs = [
   { id: 'home', label: 'Home', Icon: Crown },
-  { id: 'message', label: 'AI Chat', Icon: Bot },
-  { id: 'enquiry', label: 'Message', Icon: Send },
-  { id: 'info', label: 'Info', Icon: Mic },
+  { id: 'message', label: 'Message', Icon: Bot },
+  { id: 'enquiry', label: 'Enquiry', Icon: Send },
+  { id: 'info', label: 'News', Icon: Mic },
   { id: 'articles', label: 'Articles', Icon: Newspaper }
 ];
 
