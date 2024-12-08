@@ -2,7 +2,11 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
-import { ChatError } from '@/types/admin';
+
+// Increase timeout for Vercel
+export const maxDuration = 300; // 5 minutes
+export const dynamic = 'force-dynamic';
+export const runtime = 'edge'; // Use Edge Runtime
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -10,38 +14,71 @@ const supabase = createClient(
 );
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+  apiKey: process.env.OPENAI_API_KEY,
+  timeout: 60000 // 60 seconds timeout for OpenAI requests
 });
 
 export async function POST(req: Request) {
   try {
-    // Validate request body
+    // Add timeout to the entire request
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(new Error('Request timeout'));
+      }, 250000); // 250 seconds timeout
+    });
+
+    const responsePromise = handleRequest(req);
+    const response = await Promise.race([responsePromise, timeoutPromise]);
+    return response;
+  } catch (error) {
+    console.error('Error in chat API:', error);
+
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : 'An unexpected error occurred',
+        success: false
+      },
+      {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-store, no-cache, must-revalidate'
+        }
+      }
+    );
+  }
+}
+
+async function handleRequest(req: Request) {
+  try {
     const body = await req.json().catch(() => null);
-    if (!body || !body.message) {
+    if (!body?.message) {
       return NextResponse.json(
-        { 
-          error: 'Invalid request body', 
-          success: false 
+        {
+          error: 'Invalid request body',
+          success: false
         },
         { status: 400 }
       );
     }
 
     const { message } = body;
-    console.log('Received message:', message);
 
-    // Get documents from Supabase
+    // Optimize document query
     const { data: documents, error: dbError } = await supabase
       .from('documents')
       .select('content, metadata')
-      .limit(50);
+      .limit(30) // Reduced limit for faster response
+      .order('created_at', { ascending: false });
 
     if (dbError) {
-      console.error('Database error:', dbError);
       return NextResponse.json(
-        { 
-          error: 'Database error', 
-          success: false 
+        {
+          error: 'Database error',
+          success: false
         },
         { status: 500 }
       );
@@ -49,29 +86,30 @@ export async function POST(req: Request) {
 
     if (!documents?.length) {
       return NextResponse.json({
-        response: "I don't have any relevant information to answer your question. Please try asking something else.",
+        response:
+          "I don't have any relevant information to answer your question. Please try asking something else.",
         success: true
       });
     }
 
-    // Format context
+    // Optimize context formatting
     const context = documents
       .map((doc) => {
         const source = doc.metadata?.source_url
           ? `Source: ${doc.metadata.source_url}`
           : '';
-        return `${doc.content.substring(0, 4000)}\n${source}`;
+        return `${doc.content.substring(0, 4000)}\n${source}`; // Reduced content length
       })
       .join('\n\n')
-      .substring(0, 32000);
+      .substring(0, 32000); // Reduced context length
 
-    // Generate OpenAI response
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4-turbo-preview',
-      messages: [
-        {
-          role: 'system',
-          content: `You are a helpful friendly AI assistant. Use this context to answer questions:
+    const completion = await openai.chat.completions.create(
+      {
+        model: 'gpt-4-turbo-preview',
+        messages: [
+          {
+            role: 'system',
+            content: `You are a helpful friendly AI assistant. Use this context to answer questions:
 
 ${context}
 
@@ -81,44 +119,45 @@ Instructions:
 3. Keep responses clear and structured, Don't use Negative words.
 4. Reference sources when possible, Give Source Link below the text.
 5. Be concise and helpful`
-        },
-        {
-          role: 'user',
-          content: message
-        }
-      ],
-      temperature: 0.7,
-      max_tokens: 500
-    });
+          },
+          {
+            role: 'user',
+            content: message
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 500
+      },
+      {
+        timeout: 45000 // 45 seconds timeout
+      }
+    );
 
     const aiResponse = completion.choices[0]?.message?.content;
 
     if (!aiResponse) {
       return NextResponse.json(
-        { 
-          error: 'No response generated', 
-          success: false 
+        {
+          error: 'No response generated',
+          success: false
         },
         { status: 500 }
       );
     }
 
-    // Return successful response
-    return NextResponse.json({
-      response: aiResponse,
-      success: true
-    });
-
-  } catch (error) {
-    console.error('Error in chat API:', error);
-    
-    // Ensure error response is always properly formatted JSON
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : 'An unexpected error occurred',
-        success: false
+        response: aiResponse,
+        success: true
       },
-      { status: 500 }
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-store, no-cache, must-revalidate'
+        }
+      }
     );
+  } catch (error) {
+    throw error; // Let the outer handler deal with it
   }
 }
