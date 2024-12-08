@@ -116,7 +116,7 @@ export function MessageTab() {
         {
           type: 'bot',
           content:
-            "Hi there! I'm your AI Assistant.\n\nI'm here to help you with:\n\n• Answering your questions\n• Providing information\n• Solving problems\n• Offering guidance\n\nFeel free to ask me anything! How can I assist you today?"
+            "Welcome to TIPS Connect! 🎉\n\nWe're excited to have you here! 😊 Whether you're looking for assistance, have questions, or just want to chat, I'm here to help.\n\nFeel free to ask me anything! How can I assist you today?"
         }
       ]);
       setView('chat');

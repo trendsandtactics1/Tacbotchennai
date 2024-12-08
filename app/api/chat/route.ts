@@ -18,10 +18,11 @@ export async function POST(req: Request) {
     const { message } = await req.json();
     console.log('Received message:', message);
 
-    // Get relevant documents
+    // Get relevant documents - increased limit since GPT-4 Turbo can handle more context
     const { data: documents, error: dbError } = await supabase
       .from('documents')
-      .select('content, metadata');
+      .select('content, metadata')
+      .limit(50); // Increased from 5 to 15 documents
 
     if (dbError) {
       console.error('Database error:', dbError);
@@ -37,21 +38,22 @@ export async function POST(req: Request) {
       });
     }
 
-    // Format context
+    // Format context - increased limits due to larger context window
     const context = documents
       .map((doc) => {
         const source = doc.metadata?.source_url
           ? `Source: ${doc.metadata.source_url}`
           : '';
-        return `${doc.content}\n${source}`;
+        // Increased per-document limit
+        return `${doc.content.substring(0, 4000)}\n${source}`;
       })
-      .join('\n\n');
+      .join('\n\n')
+      .substring(0, 32000); // Increased total context length
 
     console.log('Sending request to OpenAI...');
 
-    // Generate response
     const completion = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo', // Changed to a more widely available model
+      model: 'gpt-4-turbo-preview', // Using GPT-4 Turbo with 128k context window
       messages: [
         {
           role: 'system',
@@ -60,11 +62,11 @@ export async function POST(req: Request) {
 ${context}
 
 Instructions:
-1. Use the context above to answer questions,Always give a positive words.
+1. Use the context above to answer questions, Always give a positive words.
 2. If you can't find relevant information, Kindly give users contact details and location details.
-3. Keep responses clear and structured,Dont use Negative words.
-4. Reference sources when possible,Give Source Link below the text.
-5. Be concise and helpful` 
+3. Keep responses clear and structured, Don't use Negative words.
+4. Reference sources when possible, Give Source Link below the text.
+5. Be concise and helpful`
         },
         {
           role: 'user',
@@ -72,10 +74,8 @@ Instructions:
         }
       ],
       temperature: 0.7,
-      max_tokens: 400
+      max_tokens: 500 // Increased response length
     });
-
-    console.log('Received OpenAI response');
 
     const aiResponse = completion.choices[0]?.message?.content;
 

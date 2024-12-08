@@ -16,18 +16,19 @@ export async function processWebsiteContent(url: string) {
     const response = await fetch(url);
     const html = await response.text();
 
-    // Clean and extract text content
+    // Clean and extract text content with length limit
     const textContent = html
       .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
       .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
       .replace(/<[^>]+>/g, ' ')
       .replace(/\s+/g, ' ')
-      .trim();
+      .trim()
+      .substring(0, 4000); // Limit content length
 
     // Generate embedding using OpenAI
     const embeddingResponse = await openai.embeddings.create({
       model: 'text-embedding-ada-002',
-      input: textContent.substring(0, 8000) // OpenAI token limit
+      input: textContent.substring(0, 8000) // Keep OpenAI token limit
     });
 
     const [{ embedding }] = embeddingResponse.data;

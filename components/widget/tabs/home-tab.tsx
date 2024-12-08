@@ -23,7 +23,7 @@ export function HomeTab({ onChatClick, onClose }: HomeTabProps) {
       try {
         const data = await AnnouncementService.getAnnouncements();
         // Only show the latest 3 announcements on home tab
-        setAnnouncements(data.slice(0, 3));
+        setAnnouncements(data.slice(0, 5));
       } catch (error) {
         console.error('Error loading announcements:', error);
         toast.error('Failed to load announcements');
@@ -69,7 +69,7 @@ export function HomeTab({ onChatClick, onClose }: HomeTabProps) {
             />
             <div>
               <h1 className='text-[32px] font-semibold mb-2 text-white'>
-                Hello there.
+                Hello there
               </h1>
               <h2 className='text-[24px] font-semibold text-white'>
                 How can we help?
@@ -83,7 +83,7 @@ export function HomeTab({ onChatClick, onClose }: HomeTabProps) {
         onClick={onChatClick}
         className='bg-gradient-to-r flex items-center gap-4 justify-center text-base font-semibold hover:font-semibold from-red-500 to-yellow-500 text-white px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-300'
       >
-        Chat with AI <Bot className='w-6 h-6' />
+        Chat with Us <Bot className='w-6 h-6' />
       </button>
 
       {/* Recent Announcements */}
