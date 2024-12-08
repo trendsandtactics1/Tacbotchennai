@@ -4,9 +4,9 @@ import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 
 // Increase timeout for Vercel
-export const maxDuration = 300; // 5 minutes
+export const maxDuration = 60; // 1 minute
 export const dynamic = 'force-dynamic';
-export const runtime = 'edge'; // Use Edge Runtime
+export const runtime = 'edge';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -15,16 +15,16 @@ const supabase = createClient(
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-  timeout: 60000 // 60 seconds timeout for OpenAI requests
+  timeout: 60000
 });
 
-export async function POST(req: Request) {
+export async function POST(req: Request): Promise<Response> {
   try {
     // Add timeout to the entire request
-    const timeoutPromise = new Promise((_, reject) => {
+    const timeoutPromise = new Promise<Response>((_, reject) => {
       setTimeout(() => {
         reject(new Error('Request timeout'));
-      }, 250000); // 250 seconds timeout
+      }, 250000);
     });
 
     const responsePromise = handleRequest(req);
@@ -52,7 +52,7 @@ export async function POST(req: Request) {
   }
 }
 
-async function handleRequest(req: Request) {
+async function handleRequest(req: Request): Promise<Response> {
   try {
     const body = await req.json().catch(() => null);
     if (!body?.message) {
@@ -158,6 +158,6 @@ Instructions:
       }
     );
   } catch (error) {
-    throw error; // Let the outer handler deal with it
+    throw error;
   }
 }
