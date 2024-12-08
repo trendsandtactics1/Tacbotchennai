@@ -63,7 +63,7 @@ ${context}
 
 Instructions:
 1. Use the context above to answer questions, Always give a positive words.
-2. If you can't find relevant information, Kindly give users contact details and location details.
+2. If you can't find relevant information.
 3. Keep responses clear and structured, Don't use Negative words.
 4. Reference sources when possible, Give Source Link below the text.
 5. Be concise and helpful`
