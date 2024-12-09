@@ -77,7 +77,7 @@ body {
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-transparent text-foreground;
   }
 }
 
