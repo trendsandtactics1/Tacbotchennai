@@ -6,7 +6,7 @@
 
   // Apply configuration
   const position = config.position === 'left' ? '20px' : 'auto';
-  const right = config.position === 'left' ? 'auto' : '20px';
+  const right = config.position !== 'left' ? '20px' : 'auto';
 
   container.style.cssText = `
     position: fixed;
@@ -18,42 +18,41 @@
   `;
 
   const iframe = document.createElement('iframe');
-  const params = new URLSearchParams(config).toString();
+  const params = new URLSearchParams(typeof config === 'object' ? config : {}).toString();
   iframe.src = `https://tacbot.vercel.app/widget?${params}`;
+  iframe.style.cssText = `
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    transition: all 0.3s ease;
+    width: 400px;
+    height: 600px;
+  `;
 
-  // Default (compact) styles
   let isExpanded = false;
   let isWidgetOpen = false;
-
-  const setWidgetSize = (expanded) => {
-    iframe.style.width = expanded ? '700px' : '400px';
-    iframe.style.height = expanded ? '600px' : '600px';
-  };
 
   const updateWidgetStyles = () => {
     iframe.style.cssText = `
       border: none;
       border-radius: 10px;
       background: transparent;
-      ${isWidgetOpen ? 'box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);' : ''}
+      box-shadow: ${isWidgetOpen ? '0 4px 12px rgba(0, 0, 0, 0.15)' : 'none'};
       transition: all 0.3s ease;
       width: ${isExpanded ? '700px' : '400px'};
-      height: ${isExpanded ? '600px' : '600px'};
-      ${isWidgetOpen ? 'box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);' : ''}
+      height: 600px;
     `;
   };
 
-  setWidgetSize(isExpanded);
-  updateWidgetStyles();
-
   // Listen for messages from iframe
+  const allowedOrigin = 'https://tacbot.vercel.app';
   window.addEventListener('message', (event) => {
+    if (event.origin !== allowedOrigin) return;
+
     if (event.data.type === 'widget-resize') {
       isExpanded = event.data.expanded;
-      setWidgetSize(isExpanded);
       updateWidgetStyles();
-    }
-    if (event.data.type === 'widget-toggle') {
+    } else if (event.data.type === 'widget-toggle') {
       isWidgetOpen = event.data.open;
       updateWidgetStyles();
     }
