@@ -8,8 +8,8 @@
   const isMobile = window.innerWidth <= 768;
 
   // Apply configuration
-  const position = config.position === 'left' ? '20px' : 'auto';
-  const right = config.position !== 'left' ? '20px' : 'auto';
+  const position = config.position === 'left' ? '12px' : 'auto';
+  const right = config.position !== 'left' ? '12px' : 'auto';
 
   container.style.cssText = `
     position: fixed;
@@ -21,9 +21,11 @@
   `;
 
   const iframe = document.createElement('iframe');
-  const params = new URLSearchParams(typeof config === 'object' ? config : {}).toString();
+  const params = new URLSearchParams(
+    typeof config === 'object' ? config : {}
+  ).toString();
   iframe.src = `https://tacbot.vercel.app/widget?${params}`;
-  
+
   let isExpanded = false;
   let isWidgetOpen = false;
 
