@@ -8,8 +8,8 @@
   const isMobile = window.innerWidth <= 768;
 
   // Apply configuration
-  const position = config.position === 'left' ? '12px' : 'auto';
-  const right = config.position !== 'left' ? '12px' : 'auto';
+  const position = config.position === 'left' ? '20px' : 'auto';
+  const right = config.position !== 'left' ? '20px' : 'auto';
 
   container.style.cssText = `
     position: fixed;
