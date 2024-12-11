@@ -1,7 +1,7 @@
 // src/components/widget/tabs/message-tab.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Send, Bot, Loader2, User } from 'lucide-react';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { ChatService } from '@/lib/services/chat-service';
@@ -59,6 +59,19 @@ export function MessageTab() {
   const [currentMessage, setCurrentMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSending, setIsSending] = useState(false);
+
+  // Add ref for message container
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Add scroll to bottom function
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // Add useEffect to scroll on new messages
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isSending]); // Scroll when messages change or when sending status changes
 
   // Load chat history when component mounts or user details change
   useEffect(() => {
@@ -278,9 +291,9 @@ export function MessageTab() {
               onClick={() => setView('list')}
               className='hover:opacity-70 transition-opacity'
             >
-              <ArrowLeft size={20} />
+              <ArrowLeft size={16} />
             </button>
-            <h2 className='text-lg font-semibold'>Get Started</h2>
+            <h2 className='text-base font-semibold'>Get Started</h2>
           </div>
 
           <div className='flex flex-col items-center mb-8'>
@@ -288,26 +301,9 @@ export function MessageTab() {
               <Bot className='text-white' size={32} />
             </div>
             <h3 className='text-xl font-semibold mb-1'>
-              Welcome to AI Chat Assistant
+              Welcome To Tips Connect
             </h3>
-            <p className='text-gray-600 text-center'>
-              Your personal AI assistant is ready to help you 24/7
-            </p>
-
-            <div className='flex justify-around w-full my-8'>
-              <div className='text-center'>
-                <Bot size={24} className='mx-auto mb-2 text-blue-500' />
-                <p className='text-sm'>24/7 AI Assistant</p>
-              </div>
-              <div className='text-center'>
-                <Send size={24} className='mx-auto mb-2 text-blue-500' />
-                <p className='text-sm'>Instant Responses</p>
-              </div>
-              <div className='text-center'>
-                <Bot size={24} className='mx-auto mb-2 text-blue-500' />
-                <p className='text-sm'>Smart Solutions</p>
-              </div>
-            </div>
+            <p className='text-gray-600 text-center'>Replies Instantly</p>
           </div>
 
           <form onSubmit={handleSubmitRegistration} className='space-y-4'>
@@ -427,7 +423,7 @@ export function MessageTab() {
                                 )}
                               </ul>
                             ) : (
-                              <p className='text-sm leading-7 tracking-wide'>
+                              <p className='text-[13px] text-black leading-6 tracking-wide'>
                                 {(section.content as string)
                                   .split('\n')
                                   .map((line: string, i: number) => (
@@ -467,6 +463,9 @@ export function MessageTab() {
                 </div>
               </div>
             )}
+
+            {/* Add invisible div for scrolling */}
+            <div ref={messagesEndRef} />
           </div>
 
           <div className='border-t bg-white p-2 sm:p-4'>

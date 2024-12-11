@@ -40,6 +40,7 @@
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/supabase-js": "^2.46.2",
     "@tiptap/extension-font-family": "^2.10.3",
+    "@tiptap/extension-link": "^2.10.3",
     "@tiptap/extension-text-align": "^2.10.3",
     "@tiptap/extension-text-style": "^2.10.3",
     "@tiptap/pm": "^2.10.3",

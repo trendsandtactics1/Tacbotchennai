@@ -222,14 +222,14 @@ export function EnquiryTab() {
     return (
       <div className='flex flex-col items-center justify-center h-full p-8 text-center'>
         <MessageSquare size={48} className='text-blue-500 mb-6' />
-        <h2 className='text-2xl font-bold mb-4'>Talk to Our Support Team</h2>
-        <p className='text-gray-600 mb-8'>
+        <h2 className='text-xl font-bold mb-4'>Talk to Our Support Team</h2>
+        <p className='text-gray-600 mb-8 text-base'>
           Get instant help from our human support team. We&apos;re here to
           assist you with any questions or concerns.
         </p>
         <button
           onClick={() => setView(userDetails ? 'list' : 'registration')}
-          className='bg-black text-white px-6 py-4 rounded-lg font-medium hover:bg-gray-800 transition-colors'
+          className='bg-black text-white px-6 py-3 text-base rounded-lg font-medium hover:bg-gray-800 transition-colors'
         >
           Talk to Human Support
         </button>
@@ -246,9 +246,9 @@ export function EnquiryTab() {
             onClick={() => setView('welcome')}
             className='hover:opacity-70 transition-opacity'
           >
-            <ArrowLeft size={20} />
+            <ArrowLeft size={16} />
           </button>
-          <h2 className='text-lg font-semibold'>Get Started</h2>
+          <h2 className='text-base font-semibold'>Get Started</h2>
         </div>
 
         <div className='flex flex-col items-center mb-8'>
@@ -256,13 +256,13 @@ export function EnquiryTab() {
             <MessageSquare className='text-white' size={32} />
           </div>
           <h3 className='text-xl font-semibold mb-1'>
-            Welcome to Human Support
+            Welcome To Tips Connect
           </h3>
-          <p className='text-gray-600 text-center'>
+          <p className='text-gray-600 text-center text-base'>
             Connect with our support team for personalized assistance
           </p>
 
-          <div className='flex justify-around w-full my-8'>
+          {/*<div className='flex justify-around w-full my-8'>
             <div className='text-center'>
               <MessageSquare size={24} className='mx-auto mb-2 text-blue-500' />
               <p className='text-sm'>Live Support</p>
@@ -275,7 +275,7 @@ export function EnquiryTab() {
               <User size={24} className='mx-auto mb-2 text-blue-500' />
               <p className='text-sm'>Personal Touch</p>
             </div>
-          </div>
+          </div>*/}
         </div>
 
         <form onSubmit={handleSubmitRegistration} className='space-y-4'>

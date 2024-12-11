@@ -1,6 +1,6 @@
 'use client';
 
-import { Editor } from '@tiptap/react';
+import { Editor, ChainedCommands } from '@tiptap/react';
 import {
   Bold,
   Italic,
@@ -12,15 +12,30 @@ import {
   Heading1,
   Heading2,
   Heading3,
-  Type
+  Type,
+  Underline,
+  Strikethrough,
+  Quote,
+  Undo,
+  Redo,
+  Link2,
+  TextQuote
 } from 'lucide-react';
+import Link from '@tiptap/extension-link';
 
 const FONT_SIZES = [
-  { label: 'Small', value: '0.825rem' },
-  { label: 'Normal', value: '1rem' },
-  { label: 'Medium', value: '1.25rem' },
-  { label: 'Large', value: '1.5rem' },
-  { label: 'Extra Large', value: '2rem' }
+  { label: 'Small', value: '12px' },
+  { label: 'Normal', value: '14px' },
+  { label: 'Medium', value: '16px' },
+  { label: 'Large', value: '18px' },
+  { label: 'Extra Large', value: '20px' }
+];
+
+const LINE_HEIGHTS = [
+  { label: 'Tight', value: '1' },
+  { label: 'Normal', value: '1.5' },
+  { label: 'Relaxed', value: '1.75' },
+  { label: 'Loose', value: '2' }
 ];
 
 interface EditorToolbarProps {
@@ -32,8 +47,42 @@ type Level = 1 | 2 | 3;
 export function EditorToolbar({ editor }: EditorToolbarProps) {
   if (!editor) return null;
 
+  const isActive = (type: string, attrs = {}) => {
+    return editor?.isActive(type, attrs) ?? false;
+  };
+
+  const executeCommand = (
+    callback: (chain: ChainedCommands) => ChainedCommands
+  ) => {
+    if (editor) {
+      callback(editor.chain().focus());
+    }
+  };
+
   return (
     <div className='border-b p-2 flex flex-wrap gap-2'>
+      {/* Undo/Redo Group */}
+      <div className='flex items-center gap-1 pr-2 border-r'>
+        <button
+          type='button'
+          onClick={() => editor.chain().focus().undo().run()}
+          disabled={!editor.can().undo()}
+          className='p-2 rounded hover:bg-gray-100 disabled:opacity-50'
+          title='Undo'
+        >
+          <Undo className='h-4 w-4' />
+        </button>
+        <button
+          type='button'
+          onClick={() => editor.chain().focus().redo().run()}
+          disabled={!editor.can().redo()}
+          className='p-2 rounded hover:bg-gray-100 disabled:opacity-50'
+          title='Redo'
+        >
+          <Redo className='h-4 w-4' />
+        </button>
+      </div>
+
       {/* Text Style Group */}
       <div className='flex items-center gap-1 pr-2 border-r'>
         <select
@@ -87,6 +136,26 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
         </select>
       </div>
 
+      {/* Line Height Group */}
+      <div className='flex items-center gap-1 pr-2 border-r'>
+        <select
+          className='p-2 rounded hover:bg-gray-100 outline-none'
+          onChange={(e) => {
+            editor
+              .chain()
+              .focus()
+              .setMark('textStyle', { lineHeight: e.target.value })
+              .run();
+          }}
+        >
+          {LINE_HEIGHTS.map((height) => (
+            <option key={height.value} value={height.value}>
+              {height.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
       {/* Text Format Group */}
       <div className='flex items-center gap-1 pr-2 border-r'>
         <button
@@ -108,6 +177,16 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
           title='Italic'
         >
           <Italic className='h-4 w-4' />
+        </button>
+        <button
+          type='button'
+          onClick={() => editor.chain().focus().toggleStrike().run()}
+          className={`p-2 rounded hover:bg-gray-100 ${
+            editor.isActive('strike') ? 'bg-gray-100' : ''
+          }`}
+          title='Strikethrough'
+        >
+          <Strikethrough className='h-4 w-4' />
         </button>
       </div>
 
@@ -132,6 +211,35 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
           title='Numbered List'
         >
           <ListOrdered className='h-4 w-4' />
+        </button>
+      </div>
+
+      {/* Quote & Link Group */}
+      <div className='flex items-center gap-1 pr-2 border-r'>
+        <button
+          type='button'
+          onClick={() => editor.chain().focus().toggleBlockquote().run()}
+          className={`p-2 rounded hover:bg-gray-100 ${
+            editor.isActive('blockquote') ? 'bg-gray-100' : ''
+          }`}
+          title='Quote'
+        >
+          <TextQuote className='h-4 w-4' />
+        </button>
+        <button
+          type='button'
+          onClick={() => {
+            const url = window.prompt('Enter URL');
+            if (url) {
+              editor.chain().focus().toggleLink({ href: url }).run();
+            }
+          }}
+          className={`p-2 rounded hover:bg-gray-100 ${
+            editor.isActive('link') ? 'bg-gray-100' : ''
+          }`}
+          title='Add Link'
+        >
+          <Link2 className='h-4 w-4' />
         </button>
       </div>
 

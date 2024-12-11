@@ -1,13 +1,6 @@
 // src/app/layout.tsx
 import { Toaster } from 'react-hot-toast';
 import './globals.css';
-import { Poppins } from 'next/font/google';
-
-const poppins = Poppins({
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
-  variable: '--font-poppins'
-});
 
 export default function RootLayout({
   children
@@ -16,7 +9,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang='en'>
-      <body className={`${poppins.variable} font-poppins`}>
+      <body
+        className='font-sans'
+        style={{
+          fontFamily:
+            'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
+        }}
+      >
         {children}
         <Toaster
           position='top-right'
@@ -24,7 +23,9 @@ export default function RootLayout({
             duration: 3000,
             style: {
               background: '#363636',
-              color: '#fff'
+              color: '#fff',
+              fontFamily:
+                'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
             },
             success: {
               duration: 3000,

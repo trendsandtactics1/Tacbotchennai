@@ -12,6 +12,7 @@ import TextAlign from '@tiptap/extension-text-align';
 import { EditorToolbar } from './editor-toolbar';
 import TextStyle from '@tiptap/extension-text-style';
 import { Extension } from '@tiptap/core';
+import Link from '@tiptap/extension-link';
 
 // Create a custom font size extension
 const FontSize = Extension.create({
@@ -79,8 +80,16 @@ export function ArticleModal({ article, onClose, onSave }: ArticleModalProps) {
       TextAlign.configure({
         types: ['paragraph', 'heading']
       }),
-      TextStyle,
-      FontSize
+      TextStyle.configure({
+        types: ['textStyle'],
+        HTMLAttributes: {
+          class: 'text-style'
+        }
+      }),
+      FontSize,
+      Link.configure({
+        openOnClick: false
+      })
     ],
     content: '',
     editorProps: {

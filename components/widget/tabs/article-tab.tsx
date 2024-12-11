@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowLeft, Maximize2, Minimize2 } from 'lucide-react';
 import { ArticleService } from '@/lib/services/article-service';
 import type { Article } from '@/types/admin';
 import toast from 'react-hot-toast';
@@ -19,6 +19,7 @@ export function ArticleTab({ onExpand }: ArticleTabProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { setIsExpanded } = useWidget();
+  const [isExpandedView, setIsExpandedView] = useState(false);
 
   useEffect(() => {
     loadArticles();
@@ -26,11 +27,11 @@ export function ArticleTab({ onExpand }: ArticleTabProps) {
 
   useEffect(() => {
     if (selectedArticle) {
-      onExpand(true);
+      onExpand(isExpandedView);
     } else {
       onExpand(false);
     }
-  }, [selectedArticle, onExpand]);
+  }, [selectedArticle, onExpand, isExpandedView]);
 
   const loadArticles = async () => {
     try {
@@ -66,6 +67,17 @@ export function ArticleTab({ onExpand }: ArticleTabProps) {
     }
   };
 
+  const toggleExpand = () => {
+    setIsExpandedView(!isExpandedView);
+    onExpand(!isExpandedView);
+  };
+
+  const handleArticleSelect = (article: Article) => {
+    setSelectedArticle(article);
+    setIsExpandedView(true);
+    onExpand(true);
+  };
+
   if (isLoading) {
     return (
       <div className='flex items-center justify-center h-full'>
@@ -91,6 +103,7 @@ export function ArticleTab({ onExpand }: ArticleTabProps) {
             <button
               onClick={() => {
                 setSelectedArticle(null);
+                setIsExpandedView(false);
                 onExpand(false);
               }}
               className='hover:opacity-70 transition-opacity'
@@ -101,11 +114,32 @@ export function ArticleTab({ onExpand }: ArticleTabProps) {
               Article Details
             </h2>
           </div>
+          
+          <button
+            onClick={toggleExpand}
+            className='p-2 hover:bg-gray-100 rounded-full transition-colors'
+            title={isExpandedView ? 'Collapse' : 'Expand'}
+          >
+            {isExpandedView ? (
+              <Minimize2 size={20} className='text-gray-600' />
+            ) : (
+              <Maximize2 size={20} className='text-gray-600' />
+            )}
+          </button>
         </div>
-        <div className='flex-1 overflow-y-auto'>
-          <article className='max-w-none p-4'>
+
+        <div 
+          className={`flex-1 overflow-y-auto transition-all duration-300 ${
+            isExpandedView ? 'scale-100' : 'scale-95'
+          }`}
+        >
+          <article className={`max-w-none p-4 ${
+            isExpandedView ? 'md:p-6 lg:p-8' : 'p-4'
+          }`}>
             {selectedArticle.image_url && (
-              <div className='relative w-full h-64 mb-6 rounded-lg overflow-hidden'>
+              <div className={`relative w-full mb-6 rounded-lg overflow-hidden ${
+                isExpandedView ? 'h-96' : 'h-64'
+              }`}>
                 <Image
                   src={selectedArticle.image_url}
                   alt={selectedArticle.title}
@@ -114,15 +148,23 @@ export function ArticleTab({ onExpand }: ArticleTabProps) {
                 />
               </div>
             )}
-            <h1 className='text-black text-2xl font-semibold mb-4'>
+            <h1 className={`text-black font-semibold mb-4 ${
+              isExpandedView ? 'text-3xl' : 'text-2xl'
+            }`}>
               {selectedArticle.title}
             </h1>
             <div
-              className='prose prose-sm md:prose-base lg:prose-lg max-w-none'
+              className={`prose max-w-none ${
+                isExpandedView 
+                  ? 'prose-lg md:prose-xl' 
+                  : 'prose-sm md:prose-base'
+              }`}
               dangerouslySetInnerHTML={{ __html: selectedArticle.content }}
             />
             {selectedArticle.youtube_url && (
-              <div className='mt-8 mb-4 aspect-video w-full'>
+              <div className={`mt-8 mb-4 aspect-video w-full ${
+                isExpandedView ? 'max-w-4xl mx-auto' : ''
+              }`}>
                 <h3 className='text-lg font-semibold mb-4'>Related Video</h3>
                 <iframe
                   src={getYoutubeEmbedUrl(selectedArticle.youtube_url)}
@@ -158,9 +200,7 @@ export function ArticleTab({ onExpand }: ArticleTabProps) {
           {articles.map((article) => (
             <div
               key={article.id}
-              onClick={() => {
-                setSelectedArticle(article);
-              }}
+              onClick={() => handleArticleSelect(article)}
               className='bg-white rounded-lg border p-4 hover:shadow-md transition-all duration-300 cursor-pointer'
             >
               <div className='flex gap-4'>
