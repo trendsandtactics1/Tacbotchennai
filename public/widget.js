@@ -29,24 +29,35 @@
 
   const updateWidgetStyles = () => {
     if (isMobile && isWidgetOpen) {
+      // Use viewport units with fallback for mobile browsers
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+
       iframe.style.cssText = `
         position: fixed;
         top: 0;
         left: 0;
         right: 0;
         bottom: 0;
-        width: 100vw;
-        height: 100vh;
+        width: 100%;
+        height: calc(var(--vh, 1vh) * 100);
         border: none;
         background: transparent;
         transition: all 0.3s ease;
         z-index: 99999;
+        overflow: hidden;
       `;
-      container.style.left = '0';
-      container.style.right = '0';
-      container.style.bottom = '0';
-      container.style.width = '100%';
-      container.style.height = '100%';
+      container.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        height: calc(var(--vh, 1vh) * 100);
+        z-index: 9999;
+        transition: all 0.3s ease;
+      `;
     } else {
       const baseHeight = isExpanded ? 650 : 600;
       const baseWidth = isExpanded ? 700 : 400;
@@ -74,6 +85,14 @@
     }
   };
 
+  // Update vh on resize and orientation change
+  const updateVh = () => {
+    if (isMobile && isWidgetOpen) {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    }
+  };
+
   // Listen for messages from iframe
   window.addEventListener('message', (event) => {
     if (event.origin !== 'https://tacbot.vercel.app') return;
@@ -90,8 +109,11 @@
   // Handle window resize
   window.addEventListener('resize', () => {
     isMobile = window.innerWidth <= 768;
+    updateVh();
     updateWidgetStyles();
   });
+
+  window.addEventListener('orientationchange', updateVh);
 
   container.appendChild(iframe);
   document.body.appendChild(container);
