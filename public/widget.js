@@ -5,7 +5,7 @@
   container.id = 'tacbot-widget-container';
 
   // Check if device is mobile
-  const isMobile = window.innerWidth <= 768;
+  let isMobile = window.innerWidth <= 768;
 
   // Apply configuration
   const position = config.position === 'left' ? '20px' : 'auto';
@@ -21,9 +21,7 @@
   `;
 
   const iframe = document.createElement('iframe');
-  const params = new URLSearchParams(
-    typeof config === 'object' ? config : {}
-  ).toString();
+  const params = new URLSearchParams(config).toString();
   iframe.src = `https://tacbot.vercel.app/widget?${params}`;
 
   let isExpanded = false;
@@ -47,26 +45,38 @@
       container.style.left = '0';
       container.style.right = '0';
       container.style.bottom = '0';
+      container.style.width = '100%';
+      container.style.height = '100%';
     } else {
+      const baseHeight = isExpanded ? 650 : 600;
+      const baseWidth = isExpanded ? 700 : 400;
+      
+      // Calculate responsive dimensions
+      const maxWidth = Math.min(window.innerWidth - 40, baseWidth);
+      const maxHeight = Math.min(window.innerHeight - 40, baseHeight);
+      
       iframe.style.cssText = `
         border: none;
         border-radius: 10px;
         background: transparent;
         box-shadow: ${isWidgetOpen ? '0 4px 12px rgba(0, 0, 0, 0.15)' : 'none'};
         transition: all 0.3s ease;
-        width: ${isExpanded ? '700px' : '400px'};
-        height: 600px;
+        width: ${maxWidth}px;
+        height: ${maxHeight}px;
+        display: flex;
+        flex-direction: column;
       `;
       container.style.left = position;
       container.style.right = right;
       container.style.bottom = '20px';
+      container.style.width = 'auto';
+      container.style.height = 'auto';
     }
   };
 
   // Listen for messages from iframe
-  const allowedOrigin = 'https://tacbot.vercel.app';
   window.addEventListener('message', (event) => {
-    if (event.origin !== allowedOrigin) return;
+    if (event.origin !== 'https://tacbot.vercel.app') return;
 
     if (event.data.type === 'widget-resize') {
       isExpanded = event.data.expanded;
@@ -79,11 +89,8 @@
 
   // Handle window resize
   window.addEventListener('resize', () => {
-    const newIsMobile = window.innerWidth <= 768;
-    if (newIsMobile !== isMobile) {
-      isMobile = newIsMobile;
-      updateWidgetStyles();
-    }
+    isMobile = window.innerWidth <= 768;
+    updateWidgetStyles();
   });
 
   container.appendChild(iframe);
