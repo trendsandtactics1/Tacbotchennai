@@ -178,7 +178,7 @@ function ChatWidgetContent() {
     <div className='z-50' ref={widgetRef}>
       {/* Main Floating Button */}
       <div
-        className={`fixed bottom-4 right-1 ${
+        className={`fixed bottom-4 right-0 lg:right-1 ${
           isMobile && isWidgetOpen ? 'hidden' : 'block'
         }`}
       >
