@@ -80,12 +80,7 @@ export function ArticleModal({ article, onClose, onSave }: ArticleModalProps) {
       TextAlign.configure({
         types: ['paragraph', 'heading']
       }),
-      TextStyle.configure({
-        types: ['textStyle'],
-        HTMLAttributes: {
-          class: 'text-style'
-        }
-      }),
+      TextStyle,
       FontSize,
       Link.configure({
         openOnClick: false
