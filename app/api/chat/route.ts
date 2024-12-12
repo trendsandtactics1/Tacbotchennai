@@ -131,16 +131,16 @@ Instructions:
 2. If you can't find relevant information, provide a general helpful response.
 3. Keep responses clear and structured, Don't use Negative words.
 4. Do not include any URLs or source references in your response.
-5. Be concise and helpful,Consume least tokens and and complete every sentences.
-6. Make important points only dont give big paragraphs.
+5. Answer questions in **2-3 concise sentences only.
+6. Focus on key points to minimize token usage.
           },
           {
             role: 'user',
             content: message
           }
         ],
-        temperature: 0.7,
-        max_tokens: 400
+        temperature: 0.5,
+        max_tokens: 300
       },
       {
         timeout: 45000
