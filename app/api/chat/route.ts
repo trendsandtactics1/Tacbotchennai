@@ -80,11 +80,10 @@ async function handleRequest(req: Request): Promise<Response> {
 
     const { message } = body;
 
-    // Optimize document query
     const { data: documents, error: dbError } = await supabase
       .from('documents')
       .select('content, metadata')
-      .limit(30) // Reduced limit for faster response
+      .limit(30)
       .order('created_at', { ascending: false });
 
     if (dbError) {
@@ -105,16 +104,15 @@ async function handleRequest(req: Request): Promise<Response> {
       });
     }
 
-    // Optimize context formatting
     const context = documents
       .map((doc) => {
         const source = doc.metadata?.source_url
           ? `Source: ${doc.metadata.source_url}`
           : '';
-        return `${doc.content.substring(0, 4000)}\n${source}`; // Reduced content length
+        return `${doc.content.substring(0, 4000)}\n${source}`;
       })
       .join('\n\n')
-      .substring(0, 32000); // Reduced context length
+      .substring(0, 32000);
 
     const completion = await openai.chat.completions.create(
       {
@@ -123,23 +121,23 @@ async function handleRequest(req: Request): Promise<Response> {
           {
             role: 'system',
             content: `You are a helpful friendly AI assistant. Use this context to answer questions:
-
-${context}
-
-Instructions:
-1. Use the context above to answer questions, Always give a positive words.
-2. If you can't find relevant information, provide a general helpful response.
-3. Keep responses clear and structured, Don't use Negative words.
-4. Do not include any URLs or source references in your response.
-5. Answer questions in **2-3 concise sentences only.
-6. Focus on key points to minimize token usage.
+  
+  ${context}
+  
+  Instructions:
+  1. Use the context above to answer questions, Always give a positive words.
+  2. If you can't find relevant information, provide a general helpful response.
+  3. Keep responses clear and structured, Don't use Negative words.
+  4. Do not include any URLs or source references in your response.
+  5. Be concise and helpful.
+  6. Focus on providing information directly without referencing external sources.`
           },
           {
             role: 'user',
             content: message
           }
         ],
-        temperature: 0.5,
+        temperature: 0.7,
         max_tokens: 300
       },
       {
@@ -159,7 +157,6 @@ Instructions:
       );
     }
 
-    // Clean the response to remove any URLs or source references
     const cleanedResponse = cleanResponse(aiResponse);
 
     return NextResponse.json(
@@ -175,6 +172,15 @@ Instructions:
       }
     );
   } catch (error) {
-    throw error;
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : 'An unexpected error occurred',
+        success: false
+      },
+      { status: 500 }
+    );
   }
 }

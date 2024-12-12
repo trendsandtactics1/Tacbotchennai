@@ -13,7 +13,8 @@ import {
   Send,
   Newspaper,
   Mic,
-  MessageSquare
+  MessageSquare,
+  Home
 } from 'lucide-react';
 import { HomeTab } from './tabs/home-tab';
 import Image from 'next/image';
@@ -28,7 +29,7 @@ import { Maximize2, Minimize2 } from 'lucide-react';
 
 const tabs = [
   { id: 'home', label: 'Home', Icon: Home },
-  { id: 'message', label: 'Message', Icon: Message },
+  { id: 'message', label: 'Message', Icon: MessageCircle },
   { id: 'enquiry', label: 'Enquiry', Icon: Send },
   { id: 'info', label: 'News', Icon: Mic },
   { id: 'articles', label: 'Articles', Icon: Newspaper }
