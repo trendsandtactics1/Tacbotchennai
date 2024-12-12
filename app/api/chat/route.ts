@@ -121,16 +121,16 @@ async function handleRequest(req: Request): Promise<Response> {
           {
             role: 'system',
             content: `You are a helpful friendly AI assistant. Use this context to answer questions:
-  
-  ${context}
-  
-  Instructions:
-  1. Use the context above to answer questions, Always give a positive words.
-  2. If you can't find relevant information, provide a general helpful response.
-  3. Keep responses clear and structured, Don't use Negative words.
-  4. Do not include any URLs or source references in your response.
-  5. Be concise and helpful.
-  6. Focus on providing information directly without referencing external sources.`
+
+${context}
+
+Instructions:
+1. Keep responses between 300-450 characters only.
+2. Be clear, concise, and direct.
+3. Focus on the most relevant information.
+4. Use simple, easy to understand language.
+5. Do not include URLs or source references.
+6. Always maintain a positive, helpful tone.`
           },
           {
             role: 'user',
@@ -138,7 +138,7 @@ async function handleRequest(req: Request): Promise<Response> {
           }
         ],
         temperature: 0.7,
-        max_tokens: 300
+        max_tokens: 150  // Reduced to ensure responses stay within character limit
       },
       {
         timeout: 45000
