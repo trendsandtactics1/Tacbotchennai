@@ -27,8 +27,8 @@ import { useWidget } from '@/contexts/widget-context';
 import { Maximize2, Minimize2 } from 'lucide-react';
 
 const tabs = [
-  { id: 'home', label: 'Home', Icon: Crown },
-  { id: 'message', label: 'Message', Icon: Bot },
+  { id: 'home', label: 'Home', Icon: Home },
+  { id: 'message', label: 'Message', Icon: Message },
   { id: 'enquiry', label: 'Enquiry', Icon: Send },
   { id: 'info', label: 'News', Icon: Mic },
   { id: 'articles', label: 'Articles', Icon: Newspaper }
