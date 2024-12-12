@@ -132,7 +132,7 @@ Instructions:
 3. Keep responses clear and structured, Don't use Negative words.
 4. Do not include any URLs or source references in your response.
 5. Be concise and helpful,Consume least tokens and and complete every sentences.
-6. Focus on providing information directly without referencing external sources.`
+6. Make important points only dont give big paragraphs.
           },
           {
             role: 'user',
