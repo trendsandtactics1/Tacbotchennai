@@ -128,7 +128,7 @@ Instructions:
 1. Keep responses between 300-450 characters only.
 2. Be clear, concise, and direct.
 3. Focus on the most relevant information.
-4. Use simple, easy to understand language.
+4. Use simple,Structural points and list out points.
 5. Do not include URLs or source references.
 6. Always maintain a positive, helpful tone.`
           },
