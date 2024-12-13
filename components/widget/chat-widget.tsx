@@ -190,8 +190,8 @@ function ChatWidgetContent() {
           <Image
             src='/chatbot icon.gif' // Make sure to add your GIF file to the public folder
             alt='Chat with us'
-            width={100}
-            height={100}
+            width={75}
+            height={75}
             className='object-cover'
           />
         </button>
