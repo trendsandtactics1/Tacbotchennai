@@ -188,7 +188,7 @@ function ChatWidgetContent() {
           className='w-full h-full flex items-center justify-center hover:scale-120 transition-all duration-300'
         >
           <Image
-            src='/boy.gif' // Make sure to add your GIF file to the public folder
+            src='/chatbot icon.gif' // Make sure to add your GIF file to the public folder
             alt='Chat with us'
             width={100}
             height={100}
