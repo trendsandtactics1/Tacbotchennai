@@ -443,28 +443,25 @@ export function MessageTab({ onTabChange }: MessageTabProps) {
                                 )}
                               </ul>
                             ) : section.type === 'buttons' ? (
-                              <div className='space-y-4'>
-                                <div className='flex gap-3 mt-2'>
-                                  <button
-                                    onClick={() => {
-                                      onTabChange('enquiry');
-                                    }}
-                                    className='px-2 py-2 text-[14px] font-semibold bg-black text-white rounded-lg hover:bg-black transition-colors'
-                                  >
-                                    Talk to Agent
-                                  </button>
-                                </div>
-                                <div className='flex flex-wrap gap-3'>
-                                  <Link
-                                    href='https://portal.tipsglobal.org/ParentHome/OnlineEnquiryForm'
-                                    target='_blank'
-                                    rel='noopener noreferrer'
-                                    className='px-2 py-2 text-[14px] font-semibold bg-black text-white rounded-lg hover:bg-black transition-colors'
-                                  >
-                                    Admission
-                                  </Link>
-                                </div>
-                              </div>
+                              <div className='flex gap-3 mt-2'>
+  <button
+    onClick={() => {
+      onTabChange('enquiry');
+    }}
+    className='px-2 py-2 text-[14px] font-semibold bg-black text-white rounded-lg hover:bg-black transition-colors'
+  >
+    Talk to Agent
+  </button>
+  <Link
+    href='https://portal.tipsglobal.org/ParentHome/OnlineEnquiryForm'
+    target='_blank'
+    rel='noopener noreferrer'
+    className='px-2 py-2 text-[14px] font-semibold bg-black text-white rounded-lg hover:bg-black transition-colors'
+  >
+    Admission
+  </Link>
+</div>
+
                             ) : (
                               <p className='text-[13px] text-black leading-6 tracking-wide'>
                                 {(section.content as string)
