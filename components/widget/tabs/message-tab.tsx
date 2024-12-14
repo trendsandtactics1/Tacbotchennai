@@ -459,9 +459,9 @@ export function MessageTab({ onTabChange }: MessageTabProps) {
                                     href='https://portal.tipsglobal.org/ParentHome/OnlineEnquiryForm'
                                     target='_blank'
                                     rel='noopener noreferrer'
-                                    className='px-3 py-1 text-xs font-medium border border-black text-white rounded-full hover:bg-rose-100 transition-all'
+                                    className='px-3 py-1 text-xs font-medium border border-black text-white rounded-full hover:bg-black transition-all'
                                   >
-                                    ADMISSION
+                                    Admission
                                   </Link>
                                 </div>
                               </div>
