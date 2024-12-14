@@ -413,7 +413,7 @@ export function MessageTab({ onTabChange }: MessageTabProps) {
                 <div
                   className={`max-w-[85%] rounded-2xl px-5 py-3 ${
                     message.type === 'user'
-                      ? 'bg-rose-500 text-white'
+                      ? 'bg-black-500 text-white'
                       : 'bg-gray-100 text-gray-800'
                   }`}
                 >
@@ -432,7 +432,7 @@ export function MessageTab({ onTabChange }: MessageTabProps) {
                                       key={itemIdx}
                                       className='flex items-start gap-3'
                                     >
-                                      <span className='text-rose-500 mt-1'>
+                                      <span className='text-black-500 mt-1'>
                                         •
                                       </span>
                                       <span className='text-[13px] leading-6'>
@@ -449,7 +449,7 @@ export function MessageTab({ onTabChange }: MessageTabProps) {
                                     onClick={() => {
                                       onTabChange('enquiry');
                                     }}
-                                    className='px-2 py-2 text-[14px] font-semibold bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors'
+                                    className='px-2 py-2 text-[14px] font-semibold bg-black-500 text-white rounded-lg hover:bg-black-600 transition-colors'
                                   >
                                     Talk to Agent
                                   </button>
@@ -465,20 +465,23 @@ export function MessageTab({ onTabChange }: MessageTabProps) {
                                         }
                                       ]);
                                     }}
-                                    className='px-2 py-2 text-[14px] font-semibold border border-rose-500 text-rose-500 rounded-lg hover:bg-rose-50 transition-colors'
+                                    className='px-2 py-2 text-[14px] font-semibold border border-black-500 text-black-500 rounded-lg hover:bg-black-50 transition-colors'
                                   >
                                     Continue Here
                                   </button>
                                 </div>
                                 <div className='flex flex-wrap gap-3'>
-                                  <Link
-                                    href='https://portal.tipsglobal.org/ParentHome/OnlineEnquiryForm'
-                                    target='_blank'
-                                    rel='noopener noreferrer'
-                                    className='px-3 py-1 text-xs font-medium border border-rose-500 text-rose-600 rounded-full hover:bg-rose-100 transition-all'
-                                  >
-                                    ADMISSIONS
-                                  </Link>
+                                  {['FEES', 'ADMISSIONS', 'GENERAL QUERY'].map(
+                                    (keyword) => (
+                                      <button
+                                        key={keyword}
+                                        onClick={() => onTabChange('enquiry')}
+                                        className='px-3 py-1 text-xs font-medium border border-rose-500 text-rose-600 rounded-full hover:bg-rose-100 transition-all'
+                                      >
+                                        {keyword}
+                                      </button>
+                                    )
+                                  )}
                                 </div>
                               </div>
                             ) : (
@@ -501,7 +504,7 @@ export function MessageTab({ onTabChange }: MessageTabProps) {
                                                 onClick={() =>
                                                   onTabChange('enquiry')
                                                 }
-                                                className='inline-block px-2 py-1 mx-1 text-xs font-medium bg-rose-50 text-rose-600 rounded-full hover:bg-rose-100 transition-all cursor-pointer'
+                                                className='inline-block px-2 py-1 mx-1 text-xs font-medium bg-black-50 text-black-600 rounded-full hover:bg-black-100 transition-all cursor-pointer'
                                               >
                                                 {keyword.trim()}
                                               </button>
@@ -529,8 +532,8 @@ export function MessageTab({ onTabChange }: MessageTabProps) {
 
                 {/* User Icon - Only show for user messages */}
                 {message.type === 'user' && (
-                  <div className='w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center flex-shrink-0'>
-                    <User size={20} className='text-rose-500' />
+                  <div className='w-8 h-8 rounded-full bg-black-100 flex items-center justify-center flex-shrink-0'>
+                    <User size={20} className='text-black-500' />
                   </div>
                 )}
               </div>
@@ -558,7 +561,7 @@ export function MessageTab({ onTabChange }: MessageTabProps) {
                 <input
                   type='text'
                   placeholder='Type your message...'
-                  className='w-full px-4 py-3 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent'
+                  className='w-full px-4 py-3 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black-500 focus:border-transparent'
                   value={currentMessage}
                   onChange={(e) => setCurrentMessage(e.target.value)}
                   onKeyPress={(e) => {
@@ -572,7 +575,7 @@ export function MessageTab({ onTabChange }: MessageTabProps) {
               </div>
               <button
                 onClick={handleSendMessage}
-                className='shrink-0 bg-rose-500 text-white p-2 rounded-full hover:bg-rose-600 transition-colors'
+                className='shrink-0 bg-black-500 text-white p-2 rounded-full hover:bg-black-600 transition-colors'
                 aria-label='Send message'
                 disabled={!currentMessage.trim() || isSending}
               >
