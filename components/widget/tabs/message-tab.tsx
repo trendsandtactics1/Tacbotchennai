@@ -389,8 +389,8 @@ export function MessageTab({ onTabChange }: MessageTabProps) {
               <ArrowLeft size={20} />
             </button>
             <div>
-              <h2 className='font-semibold'>Chat</h2>
-              <p className='text-sm text-gray-500'>AI Assistant</p>
+              <h2 className='font-semibold'>Tips Connect</h2>
+              <p className='text-sm text-gray-500'>Replies Instantly</p>
             </div>
           </div>
 
