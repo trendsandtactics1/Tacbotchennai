@@ -471,17 +471,14 @@ export function MessageTab({ onTabChange }: MessageTabProps) {
                                   </button>
                                 </div>
                                 <div className='flex flex-wrap gap-3'>
-                                  {['FEES', 'ADMISSIONS', 'GENERAL QUERY'].map(
-                                    (keyword) => (
-                                      <button
-                                        key={keyword}
-                                        onClick={() => onTabChange('enquiry')}
-                                        className='px-3 py-1 text-xs font-medium border border-rose-500 text-rose-600 rounded-full hover:bg-rose-100 transition-all'
-                                      >
-                                        {keyword}
-                                      </button>
-                                    )
-                                  )}
+                                  <Link
+                                    href='https://portal.tipsglobal.org/ParentHome/OnlineEnquiryForm'
+                                    target='_blank'
+                                    rel='noopener noreferrer'
+                                    className='px-3 py-1 text-xs font-medium border border-rose-500 text-rose-600 rounded-full hover:bg-rose-100 transition-all'
+                                  >
+                                    ADMISSIONS
+                                  </Link>
                                 </div>
                               </div>
                             ) : (
