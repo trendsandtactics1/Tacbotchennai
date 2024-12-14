@@ -388,10 +388,6 @@ export function MessageTab({ onTabChange }: MessageTabProps) {
             <button onClick={handleBackToList}>
               <ArrowLeft size={20} />
             </button>
-            <div>
-              <h2 className='font-semibold'>Tips Connect</h2>
-              <p className='text-sm text-gray-500'>Replies Instantly</p>
-            </div>
           </div>
 
           <div className='flex-1 overflow-y-auto p-4 space-y-6'>
