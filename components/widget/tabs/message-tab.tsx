@@ -383,12 +383,7 @@ export function MessageTab({ onTabChange }: MessageTabProps) {
 
       {/* Chat View */}
       {view === 'chat' && (
-        <div className='flex flex-col h-full'>
-          <div className='flex items-center gap-2 p-4 border-b'>
-            <button onClick={handleBackToList}>
-              <ArrowLeft size={20} />
-            </button>
-          </div>
+        
 
           <div className='flex-1 overflow-y-auto p-4 space-y-6'>
             {messages.map((message, index) => (
