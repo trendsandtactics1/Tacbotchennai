@@ -572,7 +572,7 @@ export function MessageTab({ onTabChange }: MessageTabProps) {
               </div>
               <button
                 onClick={handleSendMessage}
-                className='shrink-0 bg-pink-500 text-white p-2 rounded-full hover:bg-black-600 transition-colors'
+                className='shrink-0 bg-blue-500 text-white p-2 rounded-full hover:bg-black-600 transition-colors'
                 aria-label='Send message'
                 disabled={!currentMessage.trim() || isSending}
               >
