@@ -453,22 +453,6 @@ export function MessageTab({ onTabChange }: MessageTabProps) {
                                   >
                                     Talk to Agent
                                   </button>
-                                  <button
-                                    onClick={() => {
-                                      setCurrentMessage('');
-                                      setMessages((prev) => [
-                                        ...prev,
-                                        {
-                                          type: 'bot',
-                                          content:
-                                            "I'll try my best to help you. Please rephrase your question or ask something else."
-                                        }
-                                      ]);
-                                    }}
-                                    className='px-2 py-2 text-[14px] font-semibold border border-black text-black rounded-lg hover:bg-black hover:text-white transition-colors'
-                                  >
-                                    Continue Here
-                                  </button>
                                 </div>
                                 <div className='flex flex-wrap gap-3'>
                                   <Link
