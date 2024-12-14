@@ -488,8 +488,6 @@ export function MessageTab({ onTabChange }: MessageTabProps) {
                                 {(section.content as string)
                                   .split('\n')
                                   .map((line: string, i: number) => {
-                                    console.log('Line:', line);
-
                                     if (line.trim().startsWith('Keywords:')) {
                                       return (
                                         <div key={i} className='mt-2 mb-3'>
