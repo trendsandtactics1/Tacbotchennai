@@ -413,7 +413,7 @@ export function MessageTab({ onTabChange }: MessageTabProps) {
                 <div
                   className={`max-w-[85%] rounded-2xl px-5 py-3 ${
                     message.type === 'user'
-                      ? 'bg-black-500 text-white'
+                      ? 'bg-black text-white'
                       : 'bg-gray-100 text-gray-800'
                   }`}
                 >
@@ -449,7 +449,7 @@ export function MessageTab({ onTabChange }: MessageTabProps) {
                                     onClick={() => {
                                       onTabChange('enquiry');
                                     }}
-                                    className='px-2 py-2 text-[14px] font-semibold bg-black-500 text-white rounded-lg hover:bg-black-600 transition-colors'
+                                    className='px-2 py-2 text-[14px] font-semibold bg-black text-white rounded-lg hover:bg-black transition-colors'
                                   >
                                     Talk to Agent
                                   </button>
@@ -465,7 +465,7 @@ export function MessageTab({ onTabChange }: MessageTabProps) {
                                         }
                                       ]);
                                     }}
-                                    className='px-2 py-2 text-[14px] font-semibold border border-black-500 text-black-500 rounded-lg hover:bg-black-50 transition-colors'
+                                    className='px-2 py-2 text-[14px] font-semibold border border-black text-black rounded-lg hover:bg-black transition-colors'
                                   >
                                     Continue Here
                                   </button>
