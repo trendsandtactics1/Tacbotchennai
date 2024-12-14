@@ -31,6 +31,15 @@ function cleanResponse(text: string): string {
   return text;
 }
 
+function generateFallbackResponse(): string {
+  return `Thank you for asking. In order to answer your query in a more precise way, can I connect to our Agent?
+
+Keywords: FEES • ADMISSIONS • GENERAL QUERY
+
+<button class="transfer-button">Transfer to Agent</button>
+<button class="continue-button">Continue Here</button>`;
+}
+
 export async function POST(req: Request): Promise<Response> {
   try {
     // Add timeout to the entire request
@@ -125,10 +134,10 @@ async function handleRequest(req: Request): Promise<Response> {
 ${context}
 
 Instructions:
-1. Keep responses between 300-450 characters only,Dont use words i dont have information.
+1. Keep responses between 300-450 characters only.
 2. Be clear, concise, and More Respectful.
-3. Focus on the most relevant information,If you dont have answers give Them contact details and instruct them to apply online form.
-4. Use simple,Structural points and list out points.
+3. If you don't have enough information or are unsure, respond with: "${generateFallbackResponse()}"
+4. Use simple, Structural points and list out points.
 5. Do not include URLs or source references.
 6. Always maintain a positive, helpful tone.`
           },
@@ -138,7 +147,7 @@ Instructions:
           }
         ],
         temperature: 0.7,
-        max_tokens: 150  // Reduced to ensure responses stay within character limit
+        max_tokens: 150
       },
       {
         timeout: 45000
@@ -150,10 +159,45 @@ Instructions:
     if (!aiResponse) {
       return NextResponse.json(
         {
-          error: 'No response generated',
-          success: false
+          response: generateFallbackResponse(),
+          success: true,
+          hasButtons: true
         },
-        { status: 500 }
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-store, no-cache, must-revalidate'
+          }
+        }
+      );
+    }
+
+    // Check if response indicates uncertainty
+    const uncertaintyIndicators = [
+      "I don't have",
+      "I'm not sure",
+      "I cannot",
+      "I don't know",
+      "insufficient information"
+    ];
+
+    const isUncertain = uncertaintyIndicators.some(phrase => 
+      aiResponse.toLowerCase().includes(phrase.toLowerCase())
+    );
+
+    if (isUncertain) {
+      return NextResponse.json(
+        {
+          response: generateFallbackResponse(),
+          success: true,
+          hasButtons: true
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-store, no-cache, must-revalidate'
+          }
+        }
       );
     }
 
@@ -162,7 +206,8 @@ Instructions:
     return NextResponse.json(
       {
         response: cleanedResponse,
-        success: true
+        success: true,
+        hasButtons: false
       },
       {
         headers: {
@@ -174,10 +219,7 @@ Instructions:
   } catch (error) {
     return NextResponse.json(
       {
-        error:
-          error instanceof Error
-            ? error.message
-            : 'An unexpected error occurred',
+        error: error instanceof Error ? error.message : 'An unexpected error occurred',
         success: false
       },
       { status: 500 }

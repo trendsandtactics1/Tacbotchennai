@@ -219,7 +219,9 @@ function ChatWidgetContent() {
                   onClose={closeWidget}
                 />
               )}
-              {activeTab === 'message' && <MessageTab />}
+              {activeTab === 'message' && (
+                <MessageTab onTabChange={setActiveTab} />
+              )}
               {activeTab === 'enquiry' && <EnquiryTab />}
               {activeTab === 'info' && <AnnouncementTab />}
               {activeTab === 'articles' && (

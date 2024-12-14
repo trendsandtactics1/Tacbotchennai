@@ -21,13 +21,28 @@ interface ChatHistoryItem {
 }
 
 interface AIResponseSection {
-  type: 'list' | 'text';
-  content: string | string[];
+  type: 'list' | 'text' | 'buttons';
+  content: string | string[] | { transfer: boolean; continue: boolean };
 }
 
 const formatAIResponse = (content: string): AIResponseSection[] => {
   const sections = content.split('\n\n');
   return sections.map((section) => {
+    if (section.includes('Keywords:')) {
+      return {
+        type: 'text',
+        content: section
+      };
+    }
+    if (section.includes('transfer-button')) {
+      return {
+        type: 'buttons',
+        content: {
+          transfer: true,
+          continue: true
+        }
+      };
+    }
     if (section.includes('•')) {
       return {
         type: 'list',
@@ -44,7 +59,11 @@ const formatAIResponse = (content: string): AIResponseSection[] => {
   });
 };
 
-export function MessageTab() {
+interface MessageTabProps {
+  onTabChange: (tab: string) => void;
+}
+
+export function MessageTab({ onTabChange }: MessageTabProps) {
   const [view, setView] = useState<'list' | 'registration' | 'chat'>('list');
   const [userDetails, setUserDetails] = useLocalStorage<UserDetails | null>(
     'user-details',
@@ -422,18 +441,87 @@ export function MessageTab() {
                                   )
                                 )}
                               </ul>
+                            ) : section.type === 'buttons' ? (
+                              <div className='space-y-4'>
+                                <div className='flex gap-3 mt-2'>
+                                  <button
+                                    onClick={() => {
+                                      onTabChange('enquiry');
+                                    }}
+                                    className='px-2 py-2 text-[14px] font-semibold bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors'
+                                  >
+                                    Transfer to Agent
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setCurrentMessage('');
+                                      setMessages((prev) => [
+                                        ...prev,
+                                        {
+                                          type: 'bot',
+                                          content:
+                                            "I'll try my best to help you. Please rephrase your question or ask something else."
+                                        }
+                                      ]);
+                                    }}
+                                    className='px-2 py-2 text-[14px] font-semibold border border-rose-500 text-rose-500 rounded-lg hover:bg-rose-50 transition-colors'
+                                  >
+                                    Continue Here
+                                  </button>
+                                </div>
+                                <div className='flex flex-wrap gap-3'>
+                                  {['FEES', 'ADMISSIONS', 'GENERAL QUERY'].map(
+                                    (keyword) => (
+                                      <button
+                                        key={keyword}
+                                        onClick={() => onTabChange('enquiry')}
+                                        className='px-3 py-1 text-xs font-medium border border-rose-500 text-rose-600 rounded-full hover:bg-rose-100 transition-all'
+                                      >
+                                        {keyword}
+                                      </button>
+                                    )
+                                  )}
+                                </div>
+                              </div>
                             ) : (
                               <p className='text-[13px] text-black leading-6 tracking-wide'>
                                 {(section.content as string)
                                   .split('\n')
-                                  .map((line: string, i: number) => (
-                                    <span
-                                      key={i}
-                                      className='block mb-2 last:mb-0'
-                                    >
-                                      {line || <br />}
-                                    </span>
-                                  ))}
+                                  .map((line: string, i: number) => {
+                                    console.log('Line:', line);
+
+                                    if (line.trim().startsWith('Keywords:')) {
+                                      return (
+                                        <div key={i} className='mt-2 mb-3'>
+                                          <span className='text-gray-500 text-xs'>
+                                            Keywords:{' '}
+                                          </span>
+                                          {line
+                                            .replace('Keywords:', '')
+                                            .split('•')
+                                            .map((keyword, idx) => (
+                                              <button
+                                                key={idx}
+                                                onClick={() =>
+                                                  onTabChange('enquiry')
+                                                }
+                                                className='inline-block px-2 py-1 mx-1 text-xs font-medium bg-rose-50 text-rose-600 rounded-full hover:bg-rose-100 transition-all cursor-pointer'
+                                              >
+                                                {keyword.trim()}
+                                              </button>
+                                            ))}
+                                        </div>
+                                      );
+                                    }
+                                    return (
+                                      <span
+                                        key={i}
+                                        className='block mb-2 last:mb-0'
+                                      >
+                                        {line || <br />}
+                                      </span>
+                                    );
+                                  })}
                               </p>
                             )}
                           </div>
