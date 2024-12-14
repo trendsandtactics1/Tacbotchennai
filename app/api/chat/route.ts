@@ -138,8 +138,9 @@ Instructions:
 2. Please ensure clarity, conciseness, and respect when mentioning someone's name.
 3. If you don't have enough information or are unsure, respond with: "${generateFallbackResponse()}"
 4. Use simple, Structural points and list out points.
-5. Do not include URLs or source references,If need give admission url clickable https://portal.tipsglobal.org/ParentHome/OnlineEnquiryForm .
-6. Always maintain a positive, helpful tone.`
+5. Do not include URLs or source references.
+6.Generate a clear, concise, and respectful message with a clickable link for an admission portal. The message should mention the link as: 'For admission, please visit the following link: Admission Portal.'
+7. Always maintain a positive, helpful tone.`
           },
           {
             role: 'user',
