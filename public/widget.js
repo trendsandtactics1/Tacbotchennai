@@ -95,7 +95,7 @@ i(function () {
 
   // Listen for messages from iframe
   window.addEventListener('message', (event) => {
-    if (event.origin !== 'https://Tacbotchennai.vercel.app') return;
+    if (event.origin !== 'https://tacbotchennai.vercel.app') return;
 
     if (event.data.type === 'widget-resize') {
       isExpanded = event.data.expanded;
