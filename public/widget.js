@@ -1,8 +1,8 @@
-(function () {
-  const config = window.TacbotConfig || {};
+i(function () {
+  const config = window.TacbotchennaiConfig || {};
 
   const container = document.createElement('div');
-  container.id = 'tacbot-widget-container';
+  container.id = 'Tacbotchennai-widget-container';
 
   // Check if device is mobile
   let isMobile = window.innerWidth <= 768;
@@ -22,7 +22,7 @@
 
   const iframe = document.createElement('iframe');
   const params = new URLSearchParams(config).toString();
-  iframe.src = `https://tacbotchennai.vercel.app/widget?${params}`;
+  iframe.src = `https://Tacbotchennaichennai.vercel.app/widget?${params}`;
 
   let isExpanded = false;
   let isWidgetOpen = false;
@@ -95,7 +95,7 @@
 
   // Listen for messages from iframe
   window.addEventListener('message', (event) => {
-    if (event.origin !== 'https://tacbot.vercel.app') return;
+    if (event.origin !== 'https://Tacbotchennai.vercel.app') return;
 
     if (event.data.type === 'widget-resize') {
       isExpanded = event.data.expanded;
