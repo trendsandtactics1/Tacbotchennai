@@ -1,8 +1,8 @@
 i(function () {
-  const config = window.TacbotchennaiConfig || {};
+  const config = window.TacbotConfig || {};
 
   const container = document.createElement('div');
-  container.id = 'Tacbotchennai-widget-container';
+  container.id = 'Tacbot-widget-container';
 
   // Check if device is mobile
   let isMobile = window.innerWidth <= 768;
