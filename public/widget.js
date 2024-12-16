@@ -1,8 +1,8 @@
-i(function () {
+(function () {
   const config = window.TacbotConfig || {};
 
   const container = document.createElement('div');
-  container.id = 'Tacbot-widget-container';
+  container.id = 'tacbot-widget-container';
 
   // Check if device is mobile
   let isMobile = window.innerWidth <= 768;
