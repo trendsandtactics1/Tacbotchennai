@@ -22,7 +22,7 @@
 
   const iframe = document.createElement('iframe');
   const params = new URLSearchParams(config).toString();
-  iframe.src = `https://tacbot.vercel.app/widget?${params}`;
+  iframe.src = `https://tacbotchennai.vercel.app/widget?${params}`;
 
   let isExpanded = false;
   let isWidgetOpen = false;
