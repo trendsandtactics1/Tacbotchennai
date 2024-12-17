@@ -23,7 +23,7 @@ const nextConfig = {
     domains: [
       'cdn.pixabay.com',
       'picsum.photos',
-      'hdvkqosistjeknqzorcg.supabase.co'
+      'fcsybkrnnfaxhvulrqey.supabase.co'
     ]
   }
 };
