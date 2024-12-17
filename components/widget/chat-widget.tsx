@@ -107,7 +107,7 @@ function ChatWidgetContent() {
             />
           </div>
           <div className='text-black'>
-            <h3 className='font-semibold'>TC Chat Bot</h3>
+            <h3 className='font-semibold'>Tips Connect</h3>
             <p className='text-sm opacity-90'>Answer Instantly</p>
           </div>
         </div>
