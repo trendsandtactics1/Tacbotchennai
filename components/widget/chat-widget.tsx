@@ -108,7 +108,7 @@ function ChatWidgetContent() {
           </div>
           <div className='text-black'>
             <h3 className='font-semibold'>Tips Connect</h3>
-            <p className='text-sm opacity-90'>Answer Instantly</p>
+            <p className='text-sm opacity-90'></p>
           </div>
         </div>
         <button onClick={closeWidget} className='text-white hover:opacity-75'>
