@@ -1,7 +1,7 @@
 // components/widget/tabs/enquiry-tab.tsx
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   ArrowLeft,
   Send,
@@ -129,11 +129,7 @@ export function EnquiryTab() {
     setIsSending(true);
 
     try {
-      const message = await EnquiryService.sendMessage(
-        currentEnquiryId,
-        messageContent,
-        'user'
-      );
+      await EnquiryService.sendMessage(currentEnquiryId, messageContent, 'user');
       const updatedMessages = await EnquiryService.getEnquiryMessages(
         currentEnquiryId
       );
@@ -192,7 +188,7 @@ export function EnquiryTab() {
     }
   };
 
-  // Add this useEffect for real-time enquiry updates
+  // Real-time subscription for enquiries
   useEffect(() => {
     if (!userDetails?.id) return;
 
@@ -216,6 +212,15 @@ export function EnquiryTab() {
       enquiriesSubscription.unsubscribe();
     };
   }, [userDetails?.id, loadEnquiries]);
+
+  // Auto-scroll to bottom of messages
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop =
+        messagesContainerRef.current.scrollHeight;
+    }
+  }, [messages, isSending]);
 
   // Welcome View
   if (view === 'welcome') {
@@ -261,21 +266,6 @@ export function EnquiryTab() {
           <p className='text-gray-600 text-center text-base'>
             Connect with our support team for personalized assistance
           </p>
-
-          {/*<div className='flex justify-around w-full my-8'>
-            <div className='text-center'>
-              <MessageSquare size={24} className='mx-auto mb-2 text-blue-500' />
-              <p className='text-sm'>Live Support</p>
-            </div>
-            <div className='text-center'>
-              <Send size={24} className='mx-auto mb-2 text-blue-500' />
-              <p className='text-sm'>Quick Response</p>
-            </div>
-            <div className='text-center'>
-              <User size={24} className='mx-auto mb-2 text-blue-500' />
-              <p className='text-sm'>Personal Touch</p>
-            </div>
-          </div>*/}
         </div>
 
         <form onSubmit={handleSubmitRegistration} className='space-y-4'>
@@ -479,7 +469,10 @@ export function EnquiryTab() {
       </div>
 
       {/* Messages */}
-      <div className='flex-1 overflow-y-auto p-4 space-y-6'>
+      <div
+        className='flex-1 overflow-y-auto p-4 space-y-6'
+        ref={messagesContainerRef}
+      >
         {messages.map((message) => (
           <div
             key={message.id}
