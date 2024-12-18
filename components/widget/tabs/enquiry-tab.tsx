@@ -482,7 +482,7 @@ export function EnquiryTab() {
           >
             {/* Admin Avatar - Only show for admin messages */}
             {message.sender_type === 'admin' && (
-              <div className='w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center'>
+              <div className='w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center'>
                 <Image
                   src='/admin.png'
                   alt='User Icon'
@@ -517,7 +517,7 @@ export function EnquiryTab() {
 
             {/* User Avatar - Only show for user messages */}
             {message.sender_type === 'user' && (
-              <div className='w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center'>
+              <div className='w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center'>
                 <Image
                   src='/user-icon.png'
                   alt='User Icon'
@@ -532,7 +532,7 @@ export function EnquiryTab() {
         {/* Loading State */}
         {isSending && (
           <div className='flex items-end gap-3'>
-            <div className='w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center'>
+            <div className='w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center'>
               <Image src='/admin.png' alt='User Icon' width={30} height={30} />
             </div>
             <div className='bg-white rounded-2xl rounded-bl-none px-4 py-3 shadow-sm border'>
@@ -554,7 +554,7 @@ export function EnquiryTab() {
           <input
             type='text'
             placeholder='Type your message...'
-            className='w-full px-4 py-3 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent'
+            className='w-full px-4 py-3 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
             value={currentMessage}
             onChange={(e) => setCurrentMessage(e.target.value)}
             disabled={isSending}
@@ -562,7 +562,7 @@ export function EnquiryTab() {
           <button
             type='submit'
             disabled={!currentMessage.trim() || isSending}
-            className='shrink-0 bg-rose-500 text-white p-2 rounded-full hover:bg-rose-600 transition-colors'
+            className='shrink-0 bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 transition-colors'
           >
             {isSending ? (
               <Loader2 size={20} className='animate-spin' />
