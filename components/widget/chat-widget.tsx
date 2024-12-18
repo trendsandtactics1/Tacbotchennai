@@ -239,7 +239,7 @@ function ChatWidgetContent() {
                   onClick={() => handleTabChange(tab.id)}
                   className={`flex flex-col items-center p-2 rounded-lg transition-colors ${
                     activeTab === tab.id
-                      ? 'text-rose-600 bg-rose-50'
+                      ? 'text-blue-600 bg-blue-50'
                       : 'text-gray-800 hover:bg-gray-50'
                   }`}
                 >
