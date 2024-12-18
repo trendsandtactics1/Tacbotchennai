@@ -136,7 +136,7 @@ ${context}
 Instructions:
 1. Keep responses between 300-400 characters only.
 2. Please ensure clarity, conciseness, Always give respect when mentioning someone's name.
-3. If you don't have enough information or are unsure, respond with: "${generateFallbackResponse()}"Provide a response that includes a visual representation of a button, not just the code for it.
+3. If you don't have enough information or are unsure, respond with: "${generateFallbackResponse()}"
 4. Use simple, Structural points and list out points.
 5. Do not include URLs or source references.
 6. Avoid generic phrases like "Continue Here" or similar. Instead, clearly conclude the response without any open-ended elements.
