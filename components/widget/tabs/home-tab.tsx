@@ -58,8 +58,9 @@ export function HomeTab({ onChatClick, onClose }: HomeTabProps) {
         >
           <X size={20} className='text-white' />
         </button>
-        <div className='flex justify-between p-5 rounded-lg mt-2 items-start mb-4 bg-gradient-to-r from-red-500 to-yellow-500'>
-          <div className='flex flex-col items-start gap-6'>
+         <div className='flex justify-between p-5 rounded-lg mt-2 items-start mb-4'
+     style={{ background: 'linear-gradient(to bottom, #0C2340, #005BAC)' }}>
+      <div className='flex flex-col items-start gap-6'>
             <Image
               src='/logo.jpg'
               alt='Logo'
@@ -81,8 +82,7 @@ export function HomeTab({ onChatClick, onClose }: HomeTabProps) {
 
       <button
         onClick={onChatClick}
-        className='bg-gradient-to-r flex items-center gap-4 justify-center text-base font-semibold hover:font-semibold from-red-500 to-yellow-500 text-white px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-300'
-      >
+className='bg-gradient-to-b flex items-center gap-4 justify-center text-base font-semibold hover:font-semibold from-[#0C2340] to-[#005BAC] text-white px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-300'      >
         Chat with Us <Bot className='w-6 h-6' />
       </button>
 
