@@ -90,35 +90,34 @@ export function EnquiryTab() {
   };
 
   // Handle create new enquiry
-  const handleCreateEnquiry = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!userDetails?.id || !subject.trim() || !currentMessage.trim()) return;
+ const handleCreateEnquiry = async (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!userDetails?.id || !subject.trim() || !currentMessage.trim()) return;
 
-    setIsLoading(true);
-    try {
-      const enquiry = await EnquiryService.createEnquiry(
-        userDetails.id,
-        subject,
-        currentMessage
-      );
+  setIsLoading(true);
 
-      const messages = await EnquiryService.getEnquiryMessages(enquiry.id);
-      setMessages(messages);
-      setCurrentEnquiryId(enquiry.id);
-      setView('chat');
-      setSubject('');
-      setCurrentMessage('');
+  try {
+    const enquiry = await EnquiryService.createEnquiry(
+      userDetails.id,
+      subject,
+      currentMessage
+    );
 
-      // Refresh enquiries list
-      await loadEnquiries();
-      toast.success('Enquiry created successfully');
-    } catch (error) {
-      console.error('Error creating enquiry:', error);
-      toast.error('Failed to create enquiry');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    // Immediately subscribe to real-time updates
+    await loadEnquiryMessages(enquiry.id);
+
+    // Reset fields and reload enquiries
+    setSubject('');
+    setCurrentMessage('');
+    await loadEnquiries();
+    toast.success('Enquiry created successfully!');
+  } catch (error) {
+    console.error('Error creating enquiry:', error);
+    toast.error('Failed to create enquiry');
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   // Handle send message
   const handleSendMessage = async () => {
@@ -149,69 +148,70 @@ export function EnquiryTab() {
   };
 
   // Load enquiry messages
-  const loadEnquiryMessages = async (enquiryId: string) => {
-    try {
-      setIsLoading(true);
-      const messages = await EnquiryService.getEnquiryMessages(enquiryId);
-      setMessages(messages);
-      setCurrentEnquiryId(enquiryId);
-      setView('chat');
+ const loadEnquiryMessages = async (enquiryId: string) => {
+  setIsLoading(true);
 
-      // Subscribe to real-time updates when entering chat
-      const messagesSubscription = supabase
-        .channel(`enquiry-messages-${enquiryId}`)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'enquiry_messages',
-            filter: `enquiry_id=eq.${enquiryId}`
-          },
-          async () => {
-            const updatedMessages = await EnquiryService.getEnquiryMessages(
-              enquiryId
-            );
-            setMessages(updatedMessages);
-          }
-        )
-        .subscribe();
-
-      return () => {
-        messagesSubscription.unsubscribe();
-      };
-    } catch (error) {
-      console.error('Error loading messages:', error);
-      toast.error('Failed to load messages');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Real-time subscription for enquiries
-  useEffect(() => {
-    if (!userDetails?.id) return;
-
-    const enquiriesSubscription = supabase
-      .channel(`user-enquiries-${userDetails.id}`)
+  try {
+    // Setup subscription before fetching messages
+    const subscription = supabase
+      .channel(`enquiry-messages-${enquiryId}`)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'enquiries',
-          filter: `user_id=eq.${userDetails.id}`
+          table: 'enquiry_messages',
+          filter: `enquiry_id=eq.${enquiryId}`,
         },
         async () => {
-          await loadEnquiries();
+          // Fetch the latest messages when an update occurs
+          const updatedMessages = await EnquiryService.getEnquiryMessages(enquiryId);
+          setMessages(updatedMessages);
         }
       )
       .subscribe();
 
-    return () => {
-      enquiriesSubscription.unsubscribe();
-    };
-  }, [userDetails?.id, loadEnquiries]);
+    // Fetch initial messages
+    const messages = await EnquiryService.getEnquiryMessages(enquiryId);
+    setMessages(messages);
+    setCurrentEnquiryId(enquiryId);
+    setView('chat');
+
+    // Return cleanup function to unsubscribe
+    return () => subscription.unsubscribe();
+  } catch (error) {
+    console.error('Error loading messages:', error);
+    toast.error('Failed to load messages');
+  } finally {
+    setIsLoading(false);
+  }
+};
+  // Real-time subscription for enquiries
+ useEffect(() => {
+  if (!userDetails?.id) return;
+
+  // Create subscription
+  const subscription = supabase
+    .channel(`user-enquiries-${userDetails.id}`)
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'enquiries',
+        filter: `user_id=eq.${userDetails.id}`,
+      },
+      () => {
+        loadEnquiries(); // No need for `await` since we aren't handling the result here
+      }
+    )
+    .subscribe();
+
+  // Cleanup function
+  return () => {
+    subscription.unsubscribe(); // Synchronous cleanup
+  };
+}, [userDetails?.id, loadEnquiries]);
 
   // Auto-scroll to bottom of messages
   const messagesContainerRef = useRef<HTMLDivElement>(null);
