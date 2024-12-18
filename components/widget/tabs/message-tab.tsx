@@ -216,7 +216,7 @@ export function MessageTab({ onTabChange }: MessageTabProps) {
           {
             type: 'bot',
             content:
-              "Welcome to TIPS Connect! 🎉\n\nWe're excited to have you here! 😊 Whether you're looking for assistance, have questions, or just want to chat, I'm here to help.\n\nFeel free to ask me anything! How can I assist you today?"
+              "Welcome to TIPS Chennai! 🎉\n\nWe're excited to have you here! 😊 Whether you're looking for assistance, have questions, or just want to chat, I'm here to help.\n\nFeel free to ask me anything! How can I assist you today?"
           }
         ]);
 
