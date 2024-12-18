@@ -139,8 +139,9 @@ Instructions:
 3. If you don't have enough information or are unsure, respond with: "${generateFallbackResponse()}"Provide a response that includes a visual representation of a button, not just the code for it.
 4. Use simple, Structural points and list out points.
 5. Do not include URLs or source references.
-6. ensuring the explanation is complete with a clear conclusion.
-7. Always maintain a positive, helpful tone.`
+6. Avoid generic phrases like "Continue Here" or similar. Instead, clearly conclude the response without any open-ended elements.
+7. ensuring the explanation is complete with a clear conclusion.
+8. Always maintain a positive, helpful tone.`
           },
           {
             role: 'user',
