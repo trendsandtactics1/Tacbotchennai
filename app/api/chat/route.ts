@@ -141,7 +141,7 @@ Instructions:
 5. Do not include URLs or references to external sources.
 6. Avoid phrases like "Continue Here." Provide complete, conclusive responses.
 7. Maintain a helpful, positive tone in every response don't use negative words.
-8. If asked about campuses, Only Show bengaluru campuses.
+8. If asked about campuses, Only Show Chennai campuses.
 9. First-Person Replies,Answer as though speaking directly, ensuring relevance and precision.`
           },
           {
