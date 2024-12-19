@@ -334,7 +334,7 @@ export function EnquiryTab() {
         >
           <span className='flex items-center justify-center gap-2'>
             <Plus size={20} />
-            New Enquiry
+           Your Query
           </span>
         </button>
 
