@@ -1,12 +1,44 @@
-// src/lib/services/chat-service.ts
 import { supabase } from '../supabase/client';
-import { generateAIResponse } from '../openai/service';
 import { Message } from '@/types/admin';
+
+interface Button {
+  text: string;
+  nextFlow: string;
+}
+
+interface ChatFlow {
+  id: string;
+  message: string;
+  buttons: Button[];
+}
+
+const chatFlows: Record<string, ChatFlow> = {
+  start: {
+    id: 'start',
+    message: 'Welcome! How can I help you today?',
+    buttons: [
+      { text: 'Admission Information', nextFlow: 'admission' },
+      { text: 'Fee Structure', nextFlow: 'fees' },
+      { text: 'Campus Details', nextFlow: 'campus' },
+      { text: 'Courses Offered', nextFlow: 'courses' }
+    ]
+  },
+  admission: {
+    id: 'admission',
+    message: 'What would you like to know about admissions?',
+    buttons: [
+      { text: 'Application Process', nextFlow: 'application_process' },
+      { text: 'Required Documents', nextFlow: 'documents' },
+      { text: 'Important Dates', nextFlow: 'admission_dates' },
+      { text: 'Back to Main Menu', nextFlow: 'start' }
+    ]
+  },
+  // Add other flows as needed...
+};
 
 export class ChatService {
   static async createUser(name: string, mobile: string) {
     try {
-      // First check if user exists
       const { data: existingUser, error: searchError } = await supabase
         .from('users')
         .select('*')
@@ -21,7 +53,6 @@ export class ChatService {
         return existingUser;
       }
 
-      // Create new user if doesn't exist
       const { data, error } = await supabase
         .from('users')
         .insert([
@@ -36,14 +67,8 @@ export class ChatService {
         .select()
         .single();
 
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
-      }
-
-      if (!data) {
-        throw new Error('Failed to create user');
-      }
+      if (error) throw error;
+      if (!data) throw new Error('Failed to create user');
 
       return data;
     } catch (error) {
@@ -60,6 +85,7 @@ export class ChatService {
           {
             user_id: userId,
             title: 'New Chat',
+            current_flow: 'start',
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           }
@@ -67,11 +93,7 @@ export class ChatService {
         .select()
         .single();
 
-      if (error) {
-        console.error('Supabase error:', error);
-        throw new Error('Failed to create chat');
-      }
-
+      if (error) throw error;
       return data;
     } catch (error) {
       console.error('Error creating chat:', error);
@@ -81,7 +103,6 @@ export class ChatService {
 
   static async getChatHistory(userId: string) {
     try {
-      // First get all chats
       const { data: chats, error: chatsError } = await supabase
         .from('chat_histories')
         .select('*')
@@ -90,7 +111,6 @@ export class ChatService {
 
       if (chatsError) throw chatsError;
 
-      // Get last message for each chat
       const chatHistoryWithMessages = await Promise.all(
         chats.map(async (chat) => {
           const { data: messages, error: msgError } = await supabase
@@ -106,8 +126,8 @@ export class ChatService {
             id: chat.id,
             title: chat.title || 'New Chat',
             timestamp: new Date(chat.created_at).toLocaleString(),
-            lastMessage:
-              messages && messages[0] ? messages[0].content : undefined
+            lastMessage: messages?.[0]?.content,
+            currentFlow: chat.current_flow || 'start'
           };
         })
       );
@@ -135,11 +155,34 @@ export class ChatService {
     }
   }
 
+  static async processFlow(content: string, currentFlow: string): Promise<ChatFlow> {
+    // Check for keywords to determine next flow
+    const lowerContent = content.toLowerCase();
+    
+    if (lowerContent.includes('admission')) return chatFlows.admission;
+    if (lowerContent.includes('fee')) return chatFlows.fees;
+    if (lowerContent.includes('campus')) return chatFlows.campus;
+    if (lowerContent.includes('course')) return chatFlows.courses;
+    
+    // If no keyword match, check if it's a button selection
+    const flow = chatFlows[currentFlow];
+    const selectedButton = flow?.buttons.find(
+      button => button.text.toLowerCase() === content.toLowerCase()
+    );
+    
+    if (selectedButton) {
+      return chatFlows[selectedButton.nextFlow];
+    }
+    
+    // Default to current flow or start
+    return chatFlows[currentFlow] || chatFlows.start;
+  }
+
   static async sendMessage(
     sessionId: string,
     content: string,
-    role: 'user' | 'assistant' = 'user'
-  ): Promise<{ userMessage: Message; aiMessage: Message }> {
+    currentFlow: string = 'start'
+  ): Promise<{ userMessage: Message; aiMessage: Message; nextFlow: ChatFlow }> {
     try {
       // Save user message
       const { data: userMessage, error: userError } = await supabase
@@ -155,58 +198,34 @@ export class ChatService {
 
       if (userError) throw userError;
 
-      // Update chat timestamp
+      // Process flow and get response
+      const nextFlow = await this.processFlow(content, currentFlow);
+
+      // Save AI response
+      const { data: aiMessage, error: aiError } = await supabase
+        .from('messages')
+        .insert({
+          chat_id: sessionId,
+          content: nextFlow.message,
+          role: 'assistant',
+          created_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (aiError) throw aiError;
+
+      // Update chat history
       await supabase
         .from('chat_histories')
-        .update({ updated_at: new Date().toISOString() })
+        .update({
+          title: content.slice(0, 50) + (content.length > 50 ? '...' : ''),
+          current_flow: nextFlow.id,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', sessionId);
 
-      try {
-        // Generate AI response
-        const aiResponse = await generateAIResponse(content);
-
-        // Save AI response
-        const { data: aiMessage, error: aiError } = await supabase
-          .from('messages')
-          .insert({
-            chat_id: sessionId,
-            content: aiResponse,
-            role: 'assistant',
-            created_at: new Date().toISOString()
-          })
-          .select()
-          .single();
-
-        if (aiError) throw aiError;
-
-        // Update chat with last message
-        await supabase
-          .from('chat_histories')
-          .update({
-            title: content.slice(0, 50) + (content.length > 50 ? '...' : ''),
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', sessionId);
-
-        return { userMessage, aiMessage };
-      } catch (error) {
-        console.error('AI response error:', error);
-
-        // Save error message as AI response
-        const { data: aiMessage } = await supabase
-          .from('messages')
-          .insert({
-            chat_id: sessionId,
-            content:
-              "I apologize, but I'm having trouble accessing the relevant information right now. Please try asking your question again, or rephrase it differently.",
-            role: 'assistant',
-            created_at: new Date().toISOString()
-          })
-          .select()
-          .single();
-
-        return { userMessage, aiMessage };
-      }
+      return { userMessage, aiMessage, nextFlow };
     } catch (error) {
       console.error('Error in sendMessage:', error);
       throw error;
