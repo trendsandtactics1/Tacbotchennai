@@ -1,11 +1,12 @@
+// src/components/widget/tabs/message-tab.tsx
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Send, Bot, Loader2, User } from 'lucide-react';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { ChatService } from '@/lib/services/chat-service';
-import { Button } from '@/components/ui/button';
 import toast from 'react-hot-toast';
+import Link from 'next/link';
 
 interface UserDetails {
   id: string;
@@ -20,41 +21,79 @@ interface ChatHistoryItem {
   lastMessage?: string;
 }
 
-interface Message {
-  type: 'user' | 'bot';
-  content: string;
-  options?: string[];
+interface AIResponseSection {
+  type: 'list' | 'text' | 'buttons';
+  content: string | string[] | { transfer: boolean; continue: boolean };
 }
+
+const formatAIResponse = (content: string): AIResponseSection[] => {
+  const sections = content.split('\n\n');
+  return sections.map((section) => {
+    if (section.includes('Keywords:')) {
+      return {
+        type: 'text',
+        content: section
+      };
+    }
+    if (section.includes('transfer-button')) {
+      return {
+        type: 'buttons',
+        content: {
+          transfer: true,
+          continue: true
+        }
+      };
+    }
+    if (section.includes('•')) {
+      return {
+        type: 'list',
+        content: section
+          .split('•')
+          .filter(Boolean)
+          .map((item) => item.trim())
+      };
+    }
+    return {
+      type: 'text',
+      content: section
+    };
+  });
+};
 
 interface MessageTabProps {
   onTabChange: (tab: string) => void;
 }
 
-const MessageTab = ({ onTabChange }: MessageTabProps) => {
+export function MessageTab({ onTabChange }: MessageTabProps) {
   const [view, setView] = useState<'list' | 'registration' | 'chat'>('list');
-  const [userDetails, setUserDetails] = useLocalStorage<UserDetails | null>('user-details', null);
+  const [userDetails, setUserDetails] = useLocalStorage<UserDetails | null>(
+    'user-details',
+    null
+  );
   const [chatHistory, setChatHistory] = useState<ChatHistoryItem[]>([]);
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [formData, setFormData] = useState({ name: '', mobile: '' });
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<
+    Array<{ type: 'user' | 'bot'; content: string }>
+  >([]);
+  const [currentMessage, setCurrentMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSending, setIsSending] = useState(false);
+
+  // Add ref for message container
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const initialMessage: Message = {
-    type: 'bot',
-    content: 'Hello! How can I assist you today?',
-    options: ['Product Information', 'Support', 'Pricing', 'Contact Us']
-  };
-
+  // Add scroll to bottom function
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Add useEffect to scroll on new messages
   useEffect(() => {
     scrollToBottom();
-  }, [messages, isSending]);
+  }, [messages, isSending]); // Scroll when messages change or when sending status changes
 
+  // Load chat history when component mounts or user details change
   useEffect(() => {
     const loadHistory = async () => {
       if (userDetails?.id) {
@@ -74,6 +113,7 @@ const MessageTab = ({ onTabChange }: MessageTabProps) => {
     loadHistory();
   }, [userDetails?.id]);
 
+  // Load chat messages
   const loadChatMessages = async (chatId: string) => {
     try {
       setIsLoading(true);
@@ -81,8 +121,7 @@ const MessageTab = ({ onTabChange }: MessageTabProps) => {
       setMessages(
         messages.map((msg) => ({
           type: msg.role === 'user' ? 'user' : 'bot',
-          content: msg.content,
-          options: msg.role === 'bot' ? initialMessage.options : undefined
+          content: msg.content
         }))
       );
       setCurrentChatId(chatId);
@@ -95,19 +134,27 @@ const MessageTab = ({ onTabChange }: MessageTabProps) => {
     }
   };
 
+  // Handle new chat
   const handleNewChat = async () => {
     if (!userDetails) {
       setView('registration');
       return;
     }
 
+    setIsLoading(true);
     try {
-      setIsLoading(true);
       const chat = await ChatService.createChat(userDetails.id);
       setCurrentChatId(chat.id);
-      setMessages([initialMessage]);
+      setMessages([
+        {
+          type: 'bot',
+          content:
+            "Welcome to TIPS Chennai! 🎉\n\nWe're excited to have you here! 😊 Whether you're looking for assistance, have questions, or just want to chat, I'm here to help.\n\nFeel free to ask me anything! How can I assist you today?"
+        }
+      ]);
       setView('chat');
 
+      // Refresh chat history
       const updatedHistory = await ChatService.getChatHistory(userDetails.id);
       setChatHistory(updatedHistory);
     } catch (error) {
@@ -118,66 +165,27 @@ const MessageTab = ({ onTabChange }: MessageTabProps) => {
     }
   };
 
-  const handleOptionClick = async (option: string) => {
-    if (!currentChatId || isSending) return;
+  // Handle send message
+  const handleSendMessage = async () => {
+    if (!currentMessage.trim() || !currentChatId || isSending) return;
 
+    const messageContent = currentMessage;
+    setCurrentMessage('');
     setIsSending(true);
 
-    // Add user message
-    setMessages(prev => [...prev, { type: 'user', content: option }]);
-
     try {
-      // Send message to backend
-      await ChatService.sendMessage(currentChatId, option);
-      
-      // Generate bot response based on option
-      let botResponse: Message = {
-        type: 'bot',
-        content: '',
-        options: []
-      };
+      const { userMessage, aiMessage } = await ChatService.sendMessage(
+        currentChatId,
+        messageContent
+      );
 
-      switch (option) {
-        case 'Product Information':
-          botResponse = {
-            type: 'bot',
-            content: 'What would you like to know about our products?',
-            options: ['Features', 'Pricing Plans', 'Comparison', 'Back to Main Menu']
-          };
-          break;
-        case 'Support':
-          botResponse = {
-            type: 'bot',
-            content: 'What kind of support do you need?',
-            options: ['Technical Help', 'Account Issues', 'Bug Report', 'Back to Main Menu']
-          };
-          break;
-        case 'Pricing':
-          botResponse = {
-            type: 'bot',
-            content: 'Choose a pricing category to learn more:',
-            options: ['Basic Plan', 'Pro Plan', 'Enterprise Plan', 'Back to Main Menu']
-          };
-          break;
-        case 'Contact Us':
-          botResponse = {
-            type: 'bot',
-            content: 'How would you like to contact us?',
-            options: ['Email', 'Phone', 'Live Chat', 'Back to Main Menu']
-          };
-          break;
-        case 'Back to Main Menu':
-          botResponse = initialMessage;
-          break;
-        default:
-          botResponse = {
-            type: 'bot',
-            content: `Here's the information about ${option}. Would you like to know anything else?`,
-            options: ['Back to Main Menu']
-          };
+      if (userMessage && aiMessage) {
+        setMessages((prev) => [
+          ...prev,
+          { type: 'user', content: userMessage.content },
+          { type: 'bot', content: aiMessage.content }
+        ]);
       }
-
-      setMessages(prev => [...prev, botResponse]);
     } catch (error) {
       console.error('Error sending message:', error);
       toast.error('Failed to send message');
@@ -186,6 +194,7 @@ const MessageTab = ({ onTabChange }: MessageTabProps) => {
     }
   };
 
+  // Handle registration
   const handleSubmitRegistration = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -202,18 +211,29 @@ const MessageTab = ({ onTabChange }: MessageTabProps) => {
 
         const chat = await ChatService.createChat(user.id);
         setCurrentChatId(chat.id);
-        setMessages([initialMessage]);
+
+        setMessages([
+          {
+            type: 'bot',
+            content:
+              "Welcome to TIPS Chennai! 🎉\n\nWe're excited to have you here! 😊 Whether you're looking for assistance, have questions, or just want to chat, I'm here to help.\n\nFeel free to ask me anything! How can I assist you today?"
+          }
+        ]);
+
         setView('chat');
         toast.success('Registration successful!');
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Registration error:', error);
-      toast.error(error instanceof Error ? error.message : 'Registration failed');
+      toast.error(
+        error instanceof Error ? error.message : 'Registration failed'
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Handle back to list
   const handleBackToList = async () => {
     if (userDetails?.id) {
       try {
@@ -286,31 +306,67 @@ const MessageTab = ({ onTabChange }: MessageTabProps) => {
       {/* Registration View */}
       {view === 'registration' && (
         <div className='flex flex-col h-full p-4'>
+          <div className='flex items-center gap-2 mb-6'>
+            <button
+              onClick={() => setView('list')}
+              className='hover:opacity-70 transition-opacity'
+            >
+              <ArrowLeft size={16} />
+            </button>
+            <h2 className='text-base font-semibold'>Get Started</h2>
+          </div>
+
+          <div className='flex flex-col items-center mb-8'>
+            <div className='w-16 h-16 bg-black rounded-full mb-4 flex items-center justify-center'>
+              <Bot className='text-white' size={32} />
+            </div>
+            <h3 className='text-xl font-semibold mb-1'>
+              Welcome To Tips Connect
+            </h3>
+            <p className='text-gray-600 text-center'>Replies Instantly</p>
+          </div>
+
           <form onSubmit={handleSubmitRegistration} className='space-y-4'>
             <div>
-              <label className='block text-sm font-medium text-gray-700'>Name</label>
+              <label className='block text-sm font-medium mb-1'>Name</label>
               <input
                 type='text'
                 required
-                className='mt-1 block w-full rounded-md border border-gray-300 px-3 py-2'
+                placeholder='Enter your name'
+                className='w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none'
                 value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, name: e.target.value }))
+                }
+                disabled={isLoading}
               />
             </div>
             <div>
-              <label className='block text-sm font-medium text-gray-700'>Mobile</label>
+              <label className='block text-sm font-medium mb-1'>
+                Mobile Number
+              </label>
               <input
                 type='tel'
                 required
-                className='mt-1 block w-full rounded-md border border-gray-300 px-3 py-2'
+                placeholder='Enter your mobile number'
+                className='w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none'
                 value={formData.mobile}
-                onChange={(e) => setFormData(prev => ({ ...prev, mobile: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, mobile: e.target.value }))
+                }
+                pattern='[0-9]{10}'
+                maxLength={10}
+                disabled={isLoading}
               />
             </div>
             <button
               type='submit'
-              className='w-full bg-black text-white rounded-lg py-3 hover:opacity-90 transition-opacity disabled:opacity-50'
-              disabled={isLoading}
+              className='w-full bg-blue-500 text-white rounded-lg py-2 hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+              disabled={
+                isLoading ||
+                !formData.name.trim() ||
+                formData.mobile.length !== 10
+              }
             >
               {isLoading ? (
                 <span className='flex items-center justify-center gap-2'>
@@ -318,7 +374,7 @@ const MessageTab = ({ onTabChange }: MessageTabProps) => {
                   Registering...
                 </span>
               ) : (
-                'Register'
+                'Continue'
               )}
             </button>
           </form>
@@ -332,9 +388,7 @@ const MessageTab = ({ onTabChange }: MessageTabProps) => {
             <button onClick={handleBackToList}>
               <ArrowLeft size={20} />
             </button>
-            <span className='text-sm font-medium'>Chat</span>
-          </div>
-
+          </div> 
           <div className='flex-1 overflow-y-auto p-4 space-y-6'>
             {messages.map((message, index) => (
               <div
@@ -343,49 +397,122 @@ const MessageTab = ({ onTabChange }: MessageTabProps) => {
                   message.type === 'user' ? 'justify-end' : 'justify-start'
                 }`}
               >
+                {/* Bot Icon - Only show for bot messages */}
                 {message.type === 'bot' && (
                   <div className='w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0'>
                     <Bot size={20} className='text-gray-600' />
                   </div>
                 )}
 
-                <div className='flex flex-col gap-4 max-w-[85%]'>
-                  <div
-                    className={`rounded-2xl px-5 py-3 ${
-                      message.type === 'user'
-                        ? 'bg-black text-white'
-                        : 'bg-gray-100 text-gray-800'
-                    }`}
-                  >
+                {/* Message Content */}
+                <div
+                  className={`max-w-[85%] rounded-2xl px-5 py-3 ${
+                    message.type === 'user'
+                      ? 'bg-black text-white'
+                      : 'bg-gray-100 text-gray-800'
+                  }`}
+                >
+                  {message.type === 'user' ? (
                     <p className='text-[13px] leading-6'>{message.content}</p>
-                  </div>
+                  ) : (
+                    <div className='space-y-5'>
+                      {formatAIResponse(message.content).map(
+                        (section: AIResponseSection, idx: number) => (
+                          <div key={idx}>
+                            {section.type === 'list' ? (
+                              <ul className='space-y-3'>
+                                {(section.content as string[]).map(
+                                  (item: string, itemIdx: number) => (
+                                    <li
+                                      key={itemIdx}
+                                      className='flex items-start gap-3'
+                                    >
+                                      <span className='text-black-500 mt-1'>
+                                        •
+                                      </span>
+                                      <span className='text-[13px] leading-6'>
+                                        {item}
+                                      </span>
+                                    </li>
+                                  )
+                                )}
+                              </ul>
+                            ) : section.type === 'buttons' ? (
+                              <div className='flex gap-3 mt-2'>
+  <button
+    onClick={() => {
+      onTabChange('enquiry');
+    }}
+    className='px-2 py-2 text-[14px] font-semibold bg-black text-white rounded-lg hover:bg-black transition-colors'
+  >
+    Talk to Agent
+  </button>
+  <Link
+    href='https://portal.tipsglobal.org/ParentHome/OnlineEnquiryForm'
+    target='_blank'
+    rel='noopener noreferrer'
+    className='px-2 py-2 text-[14px] font-semibold bg-black text-white rounded-lg hover:bg-black transition-colors'
+  >
+    Admission
+  </Link>
+</div>
 
-                  {message.type === 'bot' && message.options && (
-                    <div className='flex flex-wrap gap-2'>
-                      {message.options.map((option, optionIndex) => (
-                        <Button
-                          key={optionIndex}
-                          variant='outline'
-                          size='sm'
-                          onClick={() => handleOptionClick(option)}
-                          className='text-sm'
-                          disabled={isSending}
-                        >
-                          {option}
-                        </Button>
-                      ))}
+                            ) : (
+                              <p className='text-[13px] text-black leading-6 tracking-wide'>
+                                {(section.content as string)
+                                  .split('\n')
+                                  .map((line: string, i: number) => {
+                                    if (line.trim().startsWith('Keywords:')) {
+                                      return (
+                                        <div key={i} className='mt-2 mb-3'>
+                                          <span className='text-gray-500 text-xs'>
+                                            Keywords:{' '}
+                                          </span>
+                                          {line
+                                            .replace('Keywords:', '')
+                                            .split('•')
+                                            .map((keyword, idx) => (
+                                              <button
+                                                key={idx}
+                                                onClick={() =>
+                                                  onTabChange('enquiry')
+                                                }
+                                                className='inline-block px-2 py-1 mx-1 text-xs font-medium bg-black-50 text-black-600 rounded-full hover:bg-black-100 transition-all cursor-pointer'
+                                              >
+                                                {keyword.trim()}
+                                              </button>
+                                            ))}
+                                        </div>
+                                      );
+                                    }
+                                    return (
+                                      <span
+                                        key={i}
+                                        className='block mb-2 last:mb-0'
+                                      >
+                                        {line || <br />}
+                                      </span>
+                                    );
+                                  })}
+                              </p>
+                            )}
+                          </div>
+                        )
+                      )}
                     </div>
                   )}
                 </div>
 
+                {/* User Icon - Only show for user messages */}
                 {message.type === 'user' && (
-                  <div className='w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0'>
-                    <User size={20} className='text-gray-600' />
+                  <div className='w-8 h-8 rounded-full bg-black-100 flex items-center justify-center flex-shrink-0'>
+                    <User size={20} className='text-black-500' />
                   </div>
                 )}
               </div>
             ))}
 
+            {/* Loading indicator for sending message */}
             {isSending && (
               <div className='flex items-start gap-3'>
                 <div className='w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center'>
@@ -397,12 +524,44 @@ const MessageTab = ({ onTabChange }: MessageTabProps) => {
               </div>
             )}
 
+            {/* Add invisible div for scrolling */}
             <div ref={messagesEndRef} />
+          </div>
+
+          <div className='border-t bg-white p-2 sm:p-4'>
+            <div className='flex gap-2 max-w-full'>
+              <div className='flex-1 min-w-0'>
+                <input
+                  type='text'
+                  placeholder='Type your message...'
+                  className='w-full px-4 py-3 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black-500 focus:border-transparent'
+                  value={currentMessage}
+                  onChange={(e) => setCurrentMessage(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
+                  disabled={isSending}
+                />
+              </div>
+              <button
+                onClick={handleSendMessage}
+                className='shrink-0 bg-blue-500 text-white p-2 rounded-full hover:bg-black-600 transition-colors'
+                aria-label='Send message'
+                disabled={!currentMessage.trim() || isSending}
+              >
+                {isSending ? (
+                  <Loader2 size={20} className='animate-spin' />
+                ) : (
+                  <Send size={20} />
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}
     </div>
   );
-};
-
-export default MessageTab;
+}
