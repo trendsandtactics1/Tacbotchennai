@@ -20,7 +20,7 @@ export default function AnnouncementsPage() {
       const data = await AdminService.getAnnouncements();
       setAnnouncements(data);
     } catch (error) {
-      toast.error('Failed to load announcements');
+      toast.error('');
     } finally {
       setIsLoading(false);
     }
