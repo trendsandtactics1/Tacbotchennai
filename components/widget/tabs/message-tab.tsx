@@ -149,7 +149,7 @@ export function MessageTab({ onTabChange }: MessageTabProps) {
         {
           type: 'bot',
           content:
-            "Welcome to TIPS Chennai! 🎉\n\nWe're excited to have you here! 😊 Whether you're looking for assistance, have questions, or just want to chat, I'm here to help.\n\nFeel free to ask me anything! How can I assist you today?"
+            "Welcome to KPR Nilaya! 🎉\n\nWe're excited to have you here! 😊 Whether you're looking for assistance, have questions, or just want to chat, I'm here to help.\n\nFeel free to ask me anything! How can I assist you today?"
         }
       ]);
       setView('chat');
@@ -216,7 +216,7 @@ export function MessageTab({ onTabChange }: MessageTabProps) {
           {
             type: 'bot',
             content:
-              "Welcome to TIPS Chennai! 🎉\n\nWe're excited to have you here! 😊 Whether you're looking for assistance, have questions, or just want to chat, I'm here to help.\n\nFeel free to ask me anything! How can I assist you today?"
+              "Welcome to KPR Nilaya! 🎉\n\nWe're excited to have you here! 😊 Whether you're looking for assistance, have questions, or just want to chat, I'm here to help.\n\nFeel free to ask me anything! How can I assist you today?"
           }
         ]);
 
@@ -321,7 +321,7 @@ export function MessageTab({ onTabChange }: MessageTabProps) {
               <Bot className='text-white' size={32} />
             </div>
             <h3 className='text-xl font-semibold mb-1'>
-              Welcome To Tips Connect
+              Welcome To KPR Nilaya
             </h3>
             <p className='text-gray-600 text-center'>Replies Instantly</p>
           </div>
