@@ -5,17 +5,29 @@ import { AdminService } from '@/lib/services/admin-service';
 import { AnnouncementList } from '@/components/admin/announcements/announcement-list';
 import { AnnouncementModal } from '@/components/admin/announcements/announcement-modal';
 import { Plus, Loader2 } from 'lucide-react';
-import toast from 'react-hot-toast';
 import type { Announcement } from '@/types/admin';
 
 export default function AnnouncementsPage() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null);
+  const [selectedAnnouncement, setSelectedAnnouncement] =
+    useState<Announcement | null>(null);
 
- 
+  // ✅ Load announcements
+  const loadAnnouncements = async () => {
+    try {
+      setIsLoading(true);
+      const data = await AdminService.getAnnouncements();
+      setAnnouncements(data || []);
+    } catch (error) {
+      console.error('Error loading announcements:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  // ✅ Save or update
   const handleSave = async (data: {
     title: string;
     description: string;
@@ -26,19 +38,27 @@ export default function AnnouncementsPage() {
     try {
       if (selectedAnnouncement) {
         await AdminService.updateAnnouncement(selectedAnnouncement.id, data);
+        console.log('Announcement updated');
       } else {
         await AdminService.createAnnouncement(data);
+        console.log('Announcement created');
       }
       await loadAnnouncements();
       setIsModalOpen(false);
-      toast.success(
-        selectedAnnouncement
-          ? 'Announcement updated'
-          : 'Announcement created'
-      );
+      setSelectedAnnouncement(null);
     } catch (error) {
       console.error('Error saving announcement:', error);
-      toast.error('Failed to save announcement');
+    }
+  };
+
+  // ✅ Delete
+  const handleDelete = async (id: string) => {
+    try {
+      await AdminService.deleteAnnouncement(id);
+      await loadAnnouncements();
+      console.log('Announcement deleted');
+    } catch (error) {
+      console.error('Error deleting announcement:', error);
     }
   };
 
@@ -48,6 +68,7 @@ export default function AnnouncementsPage() {
 
   return (
     <div className="p-6">
+      {/* Header Section */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Announcements</h1>
         <button
@@ -62,6 +83,7 @@ export default function AnnouncementsPage() {
         </button>
       </div>
 
+      {/* Loader or Announcement List */}
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
           <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
@@ -73,18 +95,11 @@ export default function AnnouncementsPage() {
             setSelectedAnnouncement(announcement);
             setIsModalOpen(true);
           }}
-          onDelete={async (id) => {
-            try {
-              await AdminService.deleteAnnouncement(id);
-              await loadAnnouncements();
-              toast.success('Announcement deleted');
-            } catch (error) {
-              toast.error('Failed to delete announcement');
-            }
-          }}
+          onDelete={handleDelete}
         />
       )}
 
+      {/* Modal */}
       {isModalOpen && (
         <AnnouncementModal
           announcement={selectedAnnouncement}
@@ -97,4 +112,4 @@ export default function AnnouncementsPage() {
       )}
     </div>
   );
-} 
+}
