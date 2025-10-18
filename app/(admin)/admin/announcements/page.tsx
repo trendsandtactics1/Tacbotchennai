@@ -14,17 +14,7 @@ export default function AnnouncementsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null);
 
-  const loadAnnouncements = async () => {
-    try {
-      setIsLoading(true);
-      const data = await AdminService.getAnnouncements();
-      setAnnouncements(data);
-    } catch (error) {
-      toast.error('');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+ 
 
   const handleSave = async (data: {
     title: string;
