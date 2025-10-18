@@ -261,7 +261,7 @@ export function EnquiryTab() {
             <MessageSquare className='text-white' size={32} />
           </div>
           <h3 className='text-xl font-semibold mb-1'>
-            Welcome To Tips Connect
+            Welcome To KPR Nilaya
           </h3>
           <p className='text-gray-600 text-center text-base'>
             Connect with our support team for personalized assistance
