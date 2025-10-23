@@ -12,13 +12,11 @@ interface AIResponseSection {
   content: string | string[] | { transfer: boolean; continue: boolean };
 }
 
-/** Formats bot content into sections so your renderer can show lists/buttons/text */
+/** Keep your existing renderer contract: split by double newlines + detect bullets/buttons/keywords */
 const formatAIResponse = (content: string): AIResponseSection[] => {
   const sections = content.split('\n\n');
   return sections.map((section) => {
-    if (section.includes('Keywords:')) {
-      return { type: 'text', content: section };
-    }
+    if (section.includes('Keywords:')) return { type: 'text', content: section };
     if (section.includes('transfer-button')) {
       return { type: 'buttons', content: { transfer: true, continue: true } };
     }
@@ -39,17 +37,153 @@ interface MessageTabProps {
   onTabChange: (tab: string) => void;
 }
 
-/** Always reply with the canonical founder/bio details */
-function getBotReply(_: string): string {
-  return (
-    'K. P. Ramasamy is the Founder & Chairman of KPR Group and KPR Institutions. ' +
-    'He also co-founded KPR Mill Limited (a leading textile company) and established KPR Institute of Engineering and Technology in Coimbatore.\n\n' +
-    'About K. P. Ramasamy (KPR):\n\n' +
-    '• Born in 1949 in a village near Erode, Tamil Nadu.\n' +
-    '• Started a tiny power-loom business in 1971 with just ₹8,000 and scaled it into KPR Mill Limited, a major textile company.\n' +
-    '• Known for employee-centric initiatives—especially uplifting women—through education, skilling, and welfare programs.\n\n' +
-    'Keywords: • K. P. Ramasamy • KPR Group • KPR Institutions • KPR Mill Limited • KPRIET • Erode • 1971 • ₹8,000 • Women empowerment • Education & skilling\n\n' +
-    'transfer-button'
+/** Helper to compose a response with bullets, keywords, and action buttons */
+function composeReply(
+  bodyParagraphs: string[],
+  bullets: string[],
+  keywords: string[]
+): string {
+  const body = bodyParagraphs.join('\n\n');
+  const bulletBlock = bullets.length ? `• ${bullets.join('\n• ')}` : '';
+  const keywordsLine = `Keywords: • ${keywords.join(' • ')}`;
+  // Keep transfer-button so your UI shows Talk to Agent / Admission
+  return [body, bulletBlock, keywordsLine, 'transfer-button'].filter(Boolean).join('\n\n');
+}
+
+/** Keyword-based responder */
+function getBotReply(raw: string): string {
+  const q = raw.toLowerCase();
+
+  // ---- Primary keyword: founder ----
+  if (q.includes('founder')) {
+    return composeReply(
+      [
+        'K. P. Ramasamy is the Founder & Chairman of KPR Group and KPR Institutions.',
+        'He co-founded KPR Mill Limited (a leading textile company) and established KPR Institute of Engineering and Technology (KPRIET) in Coimbatore.',
+      ],
+      [
+        'Founder & Chairman: K. P. Ramasamy',
+        'KPR Mill Limited co-founder',
+        'KPRIET established in Coimbatore',
+      ],
+      ['founder', 'K. P. Ramasamy', 'KPR Group', 'KPR Institutions', 'KPR Mill', 'KPRIET', 'Coimbatore']
+    );
+  }
+
+  // ---- About / Bio ----
+  if (q.includes('tell me more') || q.includes('about him') || q.includes('bio') || q.includes('k. p. ramasamy') || q.includes('kpr ramasamy')) {
+    return composeReply(
+      [
+        'About K. P. Ramasamy (KPR):',
+      ],
+      [
+        'Born in 1949 in a village near Erode, Tamil Nadu',
+        'Started a tiny power-loom business in 1971 with just ₹8,000',
+        'Scaled it into KPR Mill Limited, a major textile company',
+        'Known for employee-centric initiatives—especially for women—through education and skilling',
+      ],
+      ['bio', '1949', 'Erode', '1971', '₹8,000', 'KPR Mill', 'women empowerment', 'education', 'skilling']
+    );
+  }
+
+  // ---- KPR Mill ----
+  if (q.includes('kpr mill')) {
+    return composeReply(
+      [
+        'KPR Mill Limited is a major textile company co-founded by K. P. Ramasamy.',
+      ],
+      [
+        'Textiles and apparel manufacturing',
+        'Scaled from a small power-loom beginning',
+      ],
+      ['KPR Mill', 'textile', 'manufacturing', 'apparel', 'K. P. Ramasamy']
+    );
+  }
+
+  // ---- KPRIET / Institute ----
+  if (q.includes('kpriet') || (q.includes('institute') && q.includes('engineering'))) {
+    return composeReply(
+      [
+        'KPR Institute of Engineering and Technology (KPRIET) is part of KPR Institutions, based in Coimbatore, Tamil Nadu.',
+      ],
+      [
+        'Engineering & technology programs',
+        'Campus: Coimbatore, Tamil Nadu',
+      ],
+      ['KPRIET', 'KPR Institutions', 'Coimbatore', 'engineering', 'technology', 'campus']
+    );
+  }
+
+  // ---- Admissions / Enquiry ----
+  if (q.includes('admission') || q.includes('enquiry') || q.includes('apply') || q.includes('application')) {
+    return composeReply(
+      [
+        'For admissions and program enquiries, use the Admission button below or talk to an agent.',
+      ],
+      [
+        'Guidance on programs and eligibility',
+        'Application and timelines',
+      ],
+      ['admission', 'programs', 'eligibility', 'enquiry', 'application']
+    );
+  }
+
+  // ---- Location / Address ----
+  if (q.includes('location') || q.includes('where') || q.includes('address') || q.includes('campus')) {
+    return composeReply(
+      [
+        'KPR Institutions include KPRIET, located in Coimbatore, Tamil Nadu, India.',
+      ],
+      [
+        'City: Coimbatore',
+        'State: Tamil Nadu',
+        'Country: India',
+      ],
+      ['location', 'Coimbatore', 'Tamil Nadu', 'India', 'campus', 'address']
+    );
+  }
+
+  // ---- Initiatives / Women / Employees ----
+  if (q.includes('women') || q.includes('empowerment') || q.includes('employee') || q.includes('education') || q.includes('skill')) {
+    return composeReply(
+      [
+        'K. P. Ramasamy is known for employee-centric initiatives—especially uplifting women—through education and skilling programs.',
+      ],
+      [
+        'Women empowerment focus',
+        'Education & skilling opportunities',
+      ],
+      ['women empowerment', 'employees', 'education', 'skilling', 'initiatives']
+    );
+  }
+
+  // ---- 1971 / ₹8,000 / Startup story ----
+  if (q.includes('1971') || q.includes('₹8,000') || q.includes('8000') || q.includes('power-loom') || q.includes('power loom')) {
+    return composeReply(
+      [
+        'In 1971, with just ₹8,000, K. P. Ramasamy started a tiny power-loom business that grew into KPR Mill Limited.',
+      ],
+      [
+        '1971 origin',
+        '₹8,000 initial capital',
+        'Scale-up to major textile enterprise',
+      ],
+      ['1971', '₹8,000', 'power-loom', 'KPR Mill', 'startup story']
+    );
+  }
+
+  // ---- Default helpful fallback (still keyworded) ----
+  return composeReply(
+    [
+      'I can help with KPR Institutions, the Founder, KPR Mill, KPRIET, admissions, and more. Ask something like:',
+    ],
+    [
+      'Who is the founder of KPR Institutions?',
+      'Tell me more about K. P. Ramasamy',
+      'Admissions and programs at KPRIET',
+      'Where is the campus located?',
+    ],
+    ['founder', 'K. P. Ramasamy', 'KPR Group', 'KPR Institutions', 'KPR Mill', 'KPRIET', 'admission', 'location']
   );
 }
 
@@ -73,8 +207,10 @@ export function MessageTab({ onTabChange }: MessageTabProps) {
     setCurrentMessage('');
     setIsSending(true);
 
+    // Show user's message
     setMessages((prev) => [...prev, { type: 'user', content: userText }]);
 
+    // Keyword-based reply
     const botText = getBotReply(userText);
     setMessages((prev) => [...prev, { type: 'bot', content: botText }]);
 
@@ -82,7 +218,7 @@ export function MessageTab({ onTabChange }: MessageTabProps) {
   };
 
   const handleBackToList = () => {
-    // No-op (you can remove the back button if you prefer)
+    // No-op; keep if you want the icon in the header
   };
 
   return (
