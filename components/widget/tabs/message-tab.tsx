@@ -1,7 +1,7 @@
 // components/widget/tabs/message-tab.tsx
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { ArrowLeft, Send, Bot, Loader2, User } from 'lucide-react';
 import Link from 'next/link';
 
@@ -12,11 +12,10 @@ interface AIResponseSection {
   content: string | string[] | { transfer: boolean; continue: boolean };
 }
 
-/** Keep your existing renderer contract: split by double newlines + detect bullets/buttons/keywords */
+/** Keep renderer contract: split by double newlines + detect bullets/buttons/text */
 const formatAIResponse = (content: string): AIResponseSection[] => {
   const sections = content.split('\n\n');
   return sections.map((section) => {
-    if (section.includes('Keywords:')) return { type: 'text', content: section };
     if (section.includes('transfer-button')) {
       return { type: 'buttons', content: { transfer: true, continue: true } };
     }
@@ -37,24 +36,19 @@ interface MessageTabProps {
   onTabChange: (tab: string) => void;
 }
 
-/** Helper to compose a response with bullets, keywords, and action buttons */
-function composeReply(
-  bodyParagraphs: string[],
-  bullets: string[],
-  keywords: string[]
-): string {
+/** Helper to compose a response WITHOUT keywords block */
+function composeReply(bodyParagraphs: string[], bullets: string[]): string {
   const body = bodyParagraphs.join('\n\n');
   const bulletBlock = bullets.length ? `• ${bullets.join('\n• ')}` : '';
-  const keywordsLine = `Keywords: • ${keywords.join(' • ')}`;
   // Keep transfer-button so your UI shows Talk to Agent / Admission
-  return [body, bulletBlock, keywordsLine, 'transfer-button'].filter(Boolean).join('\n\n');
+  return [body, bulletBlock, 'transfer-button'].filter(Boolean).join('\n\n');
 }
 
-/** Keyword-based responder */
+/** Keyword-based responder (answers depend on detected keywords, but no “Keywords:” in output) */
 function getBotReply(raw: string): string {
   const q = raw.toLowerCase();
 
-  // ---- Primary keyword: founder ----
+  // Founder
   if (q.includes('founder')) {
     return composeReply(
       [
@@ -65,125 +59,86 @@ function getBotReply(raw: string): string {
         'Founder & Chairman: K. P. Ramasamy',
         'KPR Mill Limited co-founder',
         'KPRIET established in Coimbatore',
-      ],
-      ['founder', 'K. P. Ramasamy', 'KPR Group', 'KPR Institutions', 'KPR Mill', 'KPRIET', 'Coimbatore']
+      ]
     );
   }
 
-  // ---- About / Bio ----
-  if (q.includes('tell me more') || q.includes('about him') || q.includes('bio') || q.includes('k. p. ramasamy') || q.includes('kpr ramasamy')) {
+  // About / Bio
+  if (
+    q.includes('tell me more') ||
+    q.includes('about him') ||
+    q.includes('bio') ||
+    q.includes('k. p. ramasamy') ||
+    q.includes('kpr ramasamy')
+  ) {
     return composeReply(
-      [
-        'About K. P. Ramasamy (KPR):',
-      ],
+      ['About K. P. Ramasamy (KPR):'],
       [
         'Born in 1949 in a village near Erode, Tamil Nadu',
         'Started a tiny power-loom business in 1971 with just ₹8,000',
-        'Scaled it into KPR Mill Limited, a major textile company',
+        'Grew it into KPR Mill Limited, a major textile company',
         'Known for employee-centric initiatives—especially for women—through education and skilling',
-      ],
-      ['bio', '1949', 'Erode', '1971', '₹8,000', 'KPR Mill', 'women empowerment', 'education', 'skilling']
+      ]
     );
   }
 
-  // ---- KPR Mill ----
+  // KPR Mill
   if (q.includes('kpr mill')) {
     return composeReply(
-      [
-        'KPR Mill Limited is a major textile company co-founded by K. P. Ramasamy.',
-      ],
-      [
-        'Textiles and apparel manufacturing',
-        'Scaled from a small power-loom beginning',
-      ],
-      ['KPR Mill', 'textile', 'manufacturing', 'apparel', 'K. P. Ramasamy']
+      ['KPR Mill Limited is a major textile company co-founded by K. P. Ramasamy.'],
+      ['Textiles and apparel manufacturing', 'Scaled from a small power-loom beginning']
     );
   }
 
-  // ---- KPRIET / Institute ----
+  // KPRIET / Institute
   if (q.includes('kpriet') || (q.includes('institute') && q.includes('engineering'))) {
     return composeReply(
-      [
-        'KPR Institute of Engineering and Technology (KPRIET) is part of KPR Institutions, based in Coimbatore, Tamil Nadu.',
-      ],
-      [
-        'Engineering & technology programs',
-        'Campus: Coimbatore, Tamil Nadu',
-      ],
-      ['KPRIET', 'KPR Institutions', 'Coimbatore', 'engineering', 'technology', 'campus']
+      ['KPR Institute of Engineering and Technology (KPRIET) is part of KPR Institutions, based in Coimbatore, Tamil Nadu.'],
+      ['Engineering & technology programs', 'Campus: Coimbatore, Tamil Nadu']
     );
   }
 
-  // ---- Admissions / Enquiry ----
+  // Admissions / Enquiry
   if (q.includes('admission') || q.includes('enquiry') || q.includes('apply') || q.includes('application')) {
     return composeReply(
-      [
-        'For admissions and program enquiries, use the Admission button below or talk to an agent.',
-      ],
-      [
-        'Guidance on programs and eligibility',
-        'Application and timelines',
-      ],
-      ['admission', 'programs', 'eligibility', 'enquiry', 'application']
+      ['For admissions and program enquiries, use the Admission button below or talk to an agent.'],
+      ['Guidance on programs and eligibility', 'Application and timelines']
     );
   }
 
-  // ---- Location / Address ----
+  // Location / Address
   if (q.includes('location') || q.includes('where') || q.includes('address') || q.includes('campus')) {
     return composeReply(
-      [
-        'KPR Institutions include KPRIET, located in Coimbatore, Tamil Nadu, India.',
-      ],
-      [
-        'City: Coimbatore',
-        'State: Tamil Nadu',
-        'Country: India',
-      ],
-      ['location', 'Coimbatore', 'Tamil Nadu', 'India', 'campus', 'address']
+      ['KPR Institutions include KPRIET, located in Coimbatore, Tamil Nadu, India.'],
+      ['City: Coimbatore', 'State: Tamil Nadu', 'Country: India']
     );
   }
 
-  // ---- Initiatives / Women / Employees ----
+  // Initiatives / Employees / Women / Education / Skills
   if (q.includes('women') || q.includes('empowerment') || q.includes('employee') || q.includes('education') || q.includes('skill')) {
     return composeReply(
-      [
-        'K. P. Ramasamy is known for employee-centric initiatives—especially uplifting women—through education and skilling programs.',
-      ],
-      [
-        'Women empowerment focus',
-        'Education & skilling opportunities',
-      ],
-      ['women empowerment', 'employees', 'education', 'skilling', 'initiatives']
+      ['K. P. Ramasamy is known for employee-centric initiatives—especially uplifting women—through education and skilling programs.'],
+      ['Women empowerment focus', 'Education & skilling opportunities']
     );
   }
 
-  // ---- 1971 / ₹8,000 / Startup story ----
+  // 1971 / ₹8,000 / Startup story
   if (q.includes('1971') || q.includes('₹8,000') || q.includes('8000') || q.includes('power-loom') || q.includes('power loom')) {
     return composeReply(
-      [
-        'In 1971, with just ₹8,000, K. P. Ramasamy started a tiny power-loom business that grew into KPR Mill Limited.',
-      ],
-      [
-        '1971 origin',
-        '₹8,000 initial capital',
-        'Scale-up to major textile enterprise',
-      ],
-      ['1971', '₹8,000', 'power-loom', 'KPR Mill', 'startup story']
+      ['In 1971, with just ₹8,000, K. P. Ramasamy started a tiny power-loom business that grew into KPR Mill Limited.'],
+      ['1971 origin', '₹8,000 initial capital', 'Scale-up to major textile enterprise']
     );
   }
 
-  // ---- Default helpful fallback (still keyworded) ----
+  // Default helpful fallback
   return composeReply(
-    [
-      'I can help with KPR Institutions, the Founder, KPR Mill, KPRIET, admissions, and more. Ask something like:',
-    ],
+    ['I can help with KPR Institutions, the Founder, KPR Mill, KPRIET, admissions, and more. Ask something like:'],
     [
       'Who is the founder of KPR Institutions?',
       'Tell me more about K. P. Ramasamy',
       'Admissions and programs at KPRIET',
       'Where is the campus located?',
-    ],
-    ['founder', 'K. P. Ramasamy', 'KPR Group', 'KPR Institutions', 'KPR Mill', 'KPRIET', 'admission', 'location']
+    ]
   );
 }
 
@@ -193,12 +148,7 @@ export function MessageTab({ onTabChange }: MessageTabProps) {
   const [currentMessage, setCurrentMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, isSending]);
+  // NOTE: Removed messagesEndRef + auto scroll useEffect to prevent jump to bottom
 
   const handleSendMessage = () => {
     if (!currentMessage.trim() || isSending) return;
@@ -207,10 +157,10 @@ export function MessageTab({ onTabChange }: MessageTabProps) {
     setCurrentMessage('');
     setIsSending(true);
 
-    // Show user's message
+    // Append user's message
     setMessages((prev) => [...prev, { type: 'user', content: userText }]);
 
-    // Keyword-based reply
+    // Append bot reply (no auto-scrolling)
     const botText = getBotReply(userText);
     setMessages((prev) => [...prev, { type: 'bot', content: botText }]);
 
@@ -290,32 +240,11 @@ export function MessageTab({ onTabChange }: MessageTabProps) {
                             </div>
                           ) : (
                             <p className="text-[13px] text-black leading-6 tracking-wide">
-                              {(section.content as string).split('\n').map((line: string, i: number) => {
-                                if (line.trim().startsWith('Keywords:')) {
-                                  return (
-                                    <div key={i} className="mt-2 mb-3">
-                                      <span className="text-gray-500 text-xs">Keywords: </span>
-                                      {line
-                                        .replace('Keywords:', '')
-                                        .split('•')
-                                        .map((keyword, kIdx) => (
-                                          <button
-                                            key={kIdx}
-                                            onClick={() => onTabChange('enquiry')}
-                                            className="inline-block px-2 py-1 mx-1 text-xs font-medium bg-black-50 text-black-600 rounded-full hover:bg-black-100 transition-all cursor-pointer"
-                                          >
-                                            {keyword.trim()}
-                                          </button>
-                                        ))}
-                                    </div>
-                                  );
-                                }
-                                return (
-                                  <span key={i} className="block mb-2 last:mb-0">
-                                    {line || <br />}
-                                  </span>
-                                );
-                              })}
+                              {(section.content as string).split('\n').map((line: string, i: number) => (
+                                <span key={i} className="block mb-2 last:mb-0">
+                                  {line || <br />}
+                                </span>
+                              ))}
                             </p>
                           )}
                         </div>
@@ -342,8 +271,6 @@ export function MessageTab({ onTabChange }: MessageTabProps) {
                 </div>
               </div>
             )}
-
-            <div ref={messagesEndRef} />
           </div>
 
           <div className="border-t bg-white p-2 sm:p-4">
