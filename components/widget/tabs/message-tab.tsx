@@ -1,7 +1,7 @@
 // components/widget/tabs/message-tab.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Send, Bot, Loader2, User } from 'lucide-react';
 import Link from 'next/link';
 
@@ -48,12 +48,55 @@ function composeReply(bodyParagraphs: string[], bullets: string[]): string {
 function getBotReply(raw: string): string {
   const q = raw.toLowerCase();
 
+  // ======== NEW Q&A YOU ASKED TO ADD ========
+
+  // Q1: Academic year & when to apply
+  if (
+    q.includes('academic year') ||
+    q.includes('when should i apply') ||
+    (q.includes('apply') && q.includes('when')) ||
+    q.includes('admission timeline') ||
+    q.includes('admissions timeline')
+  ) {
+    return composeReply(
+      [
+        'Our academic year typically begins in June 2026. Applications open several months prior.',
+        'We recommend applying as early as possible to secure a seat.',
+      ],
+      ['Academic year starts: June 2026', 'Apply early to secure a seat']
+    );
+  }
+
+  // Q2: Curriculum
+  if (q.includes('curriculum') || q.includes('cbse')) {
+    return composeReply(
+      [
+        'We follow the CBSE curriculum, emphasizing conceptual understanding, analytical thinking, and holistic development.',
+        'Our approach blends academic excellence with project-based learning, co-scholastic activities, and real-world applications — preparing students to be confident, responsible, and globally aware.',
+      ],
+      ['Board: CBSE', 'Project-based learning', 'Holistic development']
+    );
+  }
+
+  // Q3: Transport
+  if (q.includes('transport') || q.includes('bus') || q.includes('route')) {
+    return composeReply(
+      [
+        'Yes — school bus transport is provided across specified routes in and around Coimbatore.',
+        'Route details, pickup/drop timings, and fees are available from the transport office.',
+      ],
+      ['Transport available', 'Coverage: Coimbatore & nearby routes']
+    );
+  }
+
+  // ======== EXISTING ANSWERS ========
+
   // Founder
   if (q.includes('founder')) {
     return composeReply(
       [
         'K. P. Ramasamy is the Founder & Chairman of KPR Group and KPR Institutions.',
-        'He co-founded KPR Mill Limited (a leading textile company) and established KPR Institute of Engineering and Technology (KPRIET) in Coimbatore.',
+        'He co-founded KPR Mill Limited and established KPR Institute of Engineering and Technology (KPRIET) in Coimbatore.',
       ],
       [
         'Founder & Chairman: K. P. Ramasamy',
@@ -74,10 +117,10 @@ function getBotReply(raw: string): string {
     return composeReply(
       ['About K. P. Ramasamy (KPR):'],
       [
-        'Born in 1949 in a village near Erode, Tamil Nadu',
-        'Started a tiny power-loom business in 1971 with just ₹8,000',
-        'Grew it into KPR Mill Limited, a major textile company',
-        'Known for employee-centric initiatives—especially for women—through education and skilling',
+        'Born in 1949 near Erode, Tamil Nadu',
+        'Started a power-loom business in 1971 with just ₹8,000',
+        'Grew it into KPR Mill Limited',
+        'Known for employee-centric, women-focused skilling & education',
       ]
     );
   }
@@ -86,7 +129,7 @@ function getBotReply(raw: string): string {
   if (q.includes('kpr mill')) {
     return composeReply(
       ['KPR Mill Limited is a major textile company co-founded by K. P. Ramasamy.'],
-      ['Textiles and apparel manufacturing', 'Scaled from a small power-loom beginning']
+      ['Textiles & apparel manufacturing', 'Scaled from a small power-loom beginning']
     );
   }
 
@@ -102,7 +145,7 @@ function getBotReply(raw: string): string {
   if (q.includes('admission') || q.includes('enquiry') || q.includes('apply') || q.includes('application')) {
     return composeReply(
       ['For admissions and program enquiries, use the Admission button below or talk to an agent.'],
-      ['Guidance on programs and eligibility', 'Application and timelines']
+      ['Guidance on programs & eligibility', 'Applications & timelines']
     );
   }
 
@@ -118,7 +161,7 @@ function getBotReply(raw: string): string {
   if (q.includes('women') || q.includes('empowerment') || q.includes('employee') || q.includes('education') || q.includes('skill')) {
     return composeReply(
       ['K. P. Ramasamy is known for employee-centric initiatives—especially uplifting women—through education and skilling programs.'],
-      ['Women empowerment focus', 'Education & skilling opportunities']
+      ['Women empowerment', 'Education & skilling']
     );
   }
 
@@ -126,18 +169,19 @@ function getBotReply(raw: string): string {
   if (q.includes('1971') || q.includes('₹8,000') || q.includes('8000') || q.includes('power-loom') || q.includes('power loom')) {
     return composeReply(
       ['In 1971, with just ₹8,000, K. P. Ramasamy started a tiny power-loom business that grew into KPR Mill Limited.'],
-      ['1971 origin', '₹8,000 initial capital', 'Scale-up to major textile enterprise']
+      ['1971 origin', '₹8,000 initial capital', 'Scaled to a major enterprise']
     );
   }
 
   // Default helpful fallback
   return composeReply(
-    ['I can help with KPR Institutions, the Founder, KPR Mill, KPRIET, admissions, and more. Ask something like:'],
+    ['I can help with KPR Institutions, the Founder, KPR Mill, KPRIET, admissions, transport, curriculum, and more. Try asking:'],
     [
+      'What curriculum do you follow?',
+      'Is transport provided?',
+      'When does the academic year start?',
       'Who is the founder of KPR Institutions?',
-      'Tell me more about K. P. Ramasamy',
       'Admissions and programs at KPRIET',
-      'Where is the campus located?',
     ]
   );
 }
@@ -148,7 +192,12 @@ export function MessageTab({ onTabChange }: MessageTabProps) {
   const [currentMessage, setCurrentMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
 
-  // NOTE: Removed messagesEndRef + auto scroll useEffect to prevent jump to bottom
+  // === Auto-scroll to the latest message ===
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    // Smooth scroll whenever messages change, so user sees the newest answer (e.g., for Q2)
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }, [messages]);
 
   const handleSendMessage = () => {
     if (!currentMessage.trim() || isSending) return;
@@ -160,7 +209,7 @@ export function MessageTab({ onTabChange }: MessageTabProps) {
     // Append user's message
     setMessages((prev) => [...prev, { type: 'user', content: userText }]);
 
-    // Append bot reply (no auto-scrolling)
+    // Generate and append bot reply
     const botText = getBotReply(userText);
     setMessages((prev) => [...prev, { type: 'bot', content: botText }]);
 
@@ -191,9 +240,7 @@ export function MessageTab({ onTabChange }: MessageTabProps) {
             {messages.map((message, index) => (
               <div
                 key={index}
-                className={`flex items-start gap-3 ${
-                  message.type === 'user' ? 'justify-end' : 'justify-start'
-                }`}
+                className={`flex items-start gap-3 ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 {message.type === 'bot' && (
                   <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
@@ -216,7 +263,7 @@ export function MessageTab({ onTabChange }: MessageTabProps) {
                             <ul className="space-y-3">
                               {(section.content as string[]).map((item: string, itemIdx: number) => (
                                 <li key={itemIdx} className="flex items-start gap-3">
-                                  <span className="text-black-500 mt-1">•</span>
+                                  <span className="text-gray-700 mt-1">•</span>
                                   <span className="text-[13px] leading-6">{item}</span>
                                 </li>
                               ))}
@@ -254,8 +301,8 @@ export function MessageTab({ onTabChange }: MessageTabProps) {
                 </div>
 
                 {message.type === 'user' && (
-                  <div className="w-8 h-8 rounded-full bg-black-100 flex items-center justify-center flex-shrink-0">
-                    <User size={20} className="text-black-500" />
+                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                    <User size={20} className="text-gray-600" />
                   </div>
                 )}
               </div>
@@ -271,6 +318,9 @@ export function MessageTab({ onTabChange }: MessageTabProps) {
                 </div>
               </div>
             )}
+
+            {/* Auto-scroll anchor */}
+            <div ref={messagesEndRef} />
           </div>
 
           <div className="border-t bg-white p-2 sm:p-4">
@@ -279,7 +329,7 @@ export function MessageTab({ onTabChange }: MessageTabProps) {
                 <input
                   type="text"
                   placeholder="Type your message..."
-                  className="w-full px-4 py-3 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black-500 focus:border-transparent"
+                  className="w-full px-4 py-3 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
                   value={currentMessage}
                   onChange={(e) => setCurrentMessage(e.target.value)}
                   onKeyDown={(e) => {
@@ -293,7 +343,7 @@ export function MessageTab({ onTabChange }: MessageTabProps) {
               </div>
               <button
                 onClick={handleSendMessage}
-                className="shrink-0 bg-blue-500 text-white p-2 rounded-full hover:bg-black-600 transition-colors"
+                className="shrink-0 bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 transition-colors"
                 aria-label="Send message"
                 disabled={!currentMessage.trim() || isSending}
               >
