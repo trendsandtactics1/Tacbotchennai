@@ -25,8 +25,7 @@ export function HomeTab({ onChatClick, onClose }: HomeTabProps) {
         // Only show the latest 3 announcements on home tab
         setAnnouncements(data.slice(0, 5));
       } catch (error) {
-        console.error('Error loading announcements:', error);
-        toast.error('Failed to load announcements');
+       
       } finally {
         setIsLoading(false);
       }
