@@ -99,7 +99,7 @@ function ChatWidgetContent() {
         <div className='flex items-center gap-2'>
           <div className='h-16 w-16 rounded-full bg-white overflow-hidden'>
             <Image
-              src='/logo.jpg'
+              src='/logo.webp'
               alt='JKKN Logo'
               width={100}
               height={100}
